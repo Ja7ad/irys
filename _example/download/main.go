@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"github.com/Ja7ad/irys/pkg/imageHandler"
 	"io"
 	"log"
 
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/token"
 )
+
+const addressToSaveImage = "./_example/download/output.jpeg"
 
 func main() {
 	matic, err := token.NewMatic("foo")
@@ -34,6 +37,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// imageHandler.ServeFrames(b, "./_example/download/output.jpeg", imageHandler.JPG)
-	fmt.Println(string(b), file.Header, file.ContentLength, file.ContentType)
+	imageHandler.ServeFrames(b, addressToSaveImage, imageHandler.JPG)
+	fmt.Printf("you can verify the correctness of this code by checking image in this location: %s", addressToSaveImage)
+	//fmt.Println(string(b), file.Header, file.ContentLength, file.ContentType)
 }
