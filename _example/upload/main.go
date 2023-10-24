@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/token"
 	"log"
 	"os"
+
+	"github.com/Ja7ad/irys"
+	"github.com/Ja7ad/irys/token"
 )
 
 func main() {

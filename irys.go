@@ -1,10 +1,11 @@
 package irys
 
 import (
-	"github.com/Ja7ad/irys/token"
 	"io"
 	"math/big"
 	"net/http"
+
+	"github.com/Ja7ad/irys/token"
 )
 
 type Irys struct {

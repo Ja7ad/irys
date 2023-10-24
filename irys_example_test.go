@@ -2,8 +2,9 @@ package irys
 
 import (
 	"fmt"
-	"github.com/Ja7ad/irys/token"
 	"log"
+
+	"github.com/Ja7ad/irys/token"
 )
 
 func ExampleNew() {

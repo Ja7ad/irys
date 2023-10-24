@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/token"
 	"io"
 	"log"
+
+	"github.com/Ja7ad/irys"
+	"github.com/Ja7ad/irys/token"
 )
 
 func main() {
@@ -22,7 +23,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer file.Data.Close()
+	defer func(Data io.ReadCloser) {
+		err := Data.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(file.Data)
 
 	b, err := io.ReadAll(file.Data)
 	if err != nil {

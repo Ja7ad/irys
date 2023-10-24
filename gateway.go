@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/Ja7ad/irys/errors"
 	"io"
 	"math/big"
 	"net/http"
+
+	"github.com/Ja7ad/irys/errors"
 
 	"github.com/warp-contracts/syncer/src/utils/arweave"
 	"github.com/warp-contracts/syncer/src/utils/bundlr"

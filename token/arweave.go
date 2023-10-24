@@ -1,8 +1,9 @@
 package token
 
 import (
-	"github.com/Ja7ad/irys/errors"
 	"os"
+
+	"github.com/Ja7ad/irys/errors"
 )
 
 const (
