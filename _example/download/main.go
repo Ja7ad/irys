@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/Ja7ad/irys/pkg/imageHandler"
 	"io"
 	"log"
+
+	"github.com/Ja7ad/irys/pkg/imageHandler"
 
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/token"
@@ -39,5 +40,5 @@ func main() {
 	}
 	imageHandler.ServeFrames(b, addressToSaveImage, imageHandler.JPG)
 	fmt.Printf("you can verify the correctness of this code by checking image in this location: %s", addressToSaveImage)
-	//fmt.Println(string(b), file.Header, file.ContentLength, file.ContentType)
+	// fmt.Println(string(b), file.Header, file.ContentLength, file.ContentType)
 }
