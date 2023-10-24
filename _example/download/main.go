@@ -34,6 +34,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	// imageHandler.ServeFrames(b, "./_example/download/output.jpeg", imageHandler.JPG)
 	fmt.Println(string(b), file.Header, file.ContentLength, file.ContentType)
 }

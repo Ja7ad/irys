@@ -19,3 +19,7 @@
 
 # Go workspace file
 go.work
+
+
+# ignore image
+_example/download/output.jpeg
