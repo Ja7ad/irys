@@ -148,3 +148,15 @@ func main() {
 	fmt.Println(tx)
 }
 ```
+
+## Todo
+
+- [x] arweave network
+- [x] ethereum network
+- [x] polygon matic network
+- [ ] concurrent and chunk upload
+- [ ] unit test
+- [ ] found API
+- [ ] upload folder
+- [ ] withdraw balance
+- [ ] get loaded balance
