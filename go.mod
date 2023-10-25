@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/ethereum/go-ethereum v1.13.4
-	github.com/hamba/avro v1.8.0
+	github.com/hamba/avro/v2 v2.16.0
 	github.com/lestrrat-go/jwx v1.2.26
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.14.0
@@ -34,6 +34,7 @@ require (
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect

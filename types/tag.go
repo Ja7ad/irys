@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/hamba/avro"
+	"github.com/hamba/avro/v2"
 )
 
 type Tag struct {
