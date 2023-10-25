@@ -1,4 +1,5 @@
 # irys-go [![Go Reference](https://pkg.go.dev/badge/github.com/Ja7ad/irys.svg)](https://pkg.go.dev/github.com/Ja7ad/irys)
+
 Go Implementation SDK of Irys network, irys is the only provenance layer. It enables users to scale permanent data and precisely attribute its origin (arweave bundlr).
 
 ## Install
@@ -9,7 +10,7 @@ go get -u  github.com/Ja7ad/irys
 
 ## Examples
 
-example of irys sdk in golang 
+example of irys sdk in golang
 
 ### Upload
 
