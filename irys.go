@@ -2,8 +2,8 @@ package irys
 
 import (
 	"context"
+	"github.com/Ja7ad/irys/currency"
 	"github.com/Ja7ad/irys/errors"
-	"github.com/Ja7ad/irys/token"
 	"github.com/Ja7ad/irys/types"
 	"io"
 	"math/big"
@@ -15,12 +15,12 @@ type Irys struct {
 	mu       *sync.Mutex
 	client   *http.Client
 	network  Node
-	token    token.Token
+	currency currency.Currency
 	contract string
 }
 
 type Gateway interface {
-	// GetPrice return fee base on fileSize in byte for selected token
+	// GetPrice return fee base on fileSize in byte for selected currency
 	GetPrice(fileSize int) (*big.Int, error)
 
 	// BasicUpload file with calculate price and topUp balance base on price (this is slower for upload)
@@ -40,11 +40,11 @@ type Gateway interface {
 }
 
 // New create Irys object
-func New(node Node, token token.Token, options ...Option) (Gateway, error) {
+func New(node Node, currency currency.Currency, options ...Option) (Gateway, error) {
 	irys := new(Irys)
 	irys.client = http.DefaultClient
 	irys.network = node
-	irys.token = token
+	irys.currency = currency
 	irys.mu = new(sync.Mutex)
 
 	for _, opt := range options {
@@ -53,7 +53,7 @@ func New(node Node, token token.Token, options ...Option) (Gateway, error) {
 
 	irys.mu.Lock()
 	defer irys.mu.Unlock()
-	contract, err := irys.getTokenContractAddress(node, token)
+	contract, err := irys.getTokenContractAddress(node, currency)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func New(node Node, token token.Token, options ...Option) (Gateway, error) {
 	return irys, nil
 }
 
-func (i *Irys) getTokenContractAddress(node Node, token token.Token) (string, error) {
+func (i *Irys) getTokenContractAddress(node Node, currency currency.Currency) (string, error) {
 	r, err := i.client.Get(string(node))
 	if err != nil {
 		return "", err
@@ -78,7 +78,7 @@ func (i *Irys) getTokenContractAddress(node Node, token token.Token) (string, er
 		return "", err
 	}
 
-	if v, ok := resp.Addresses[token.GetBundlrName()]; ok {
+	if v, ok := resp.Addresses[currency.GetName()]; ok {
 		return v, nil
 	}
 

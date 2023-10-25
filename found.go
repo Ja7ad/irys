@@ -2,8 +2,8 @@ package irys
 
 import (
 	"context"
+	"github.com/Ja7ad/irys/currency"
 	"github.com/Ja7ad/irys/errors"
-	"github.com/Ja7ad/irys/token"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -13,23 +13,23 @@ import (
 )
 
 func (i *Irys) createTx(ctx context.Context, amount *big.Int) (string, error) {
-	switch i.token.GetType() {
-	case token.ETHEREUM, token.MATIC:
+	switch i.currency.GetType() {
+	case currency.ETHEREUM, currency.MATIC, currency.AVALANCHE, currency.FANTOM, currency.BNB, currency.ARBITRUM:
 		hash, err := createEthTx(ctx, i, amount)
 		if err != nil {
 			return "", err
 		}
 		return hash, nil
 	//TODO: arweave not supported currently
-	case token.ARWEAVE:
+	case currency.ARWEAVE:
 
 	}
 	return "", errors.ErrTokenNotSupported
 }
 
 func createEthTx(ctx context.Context, i *Irys, amount *big.Int) (string, error) {
-	pubKey := i.token.GetPublicKey()
-	client := i.token.GetRPCClient()
+	pubKey := i.currency.GetPublicKey()
+	client := i.currency.GetRPCClient()
 	fromAddress := crypto.PubkeyToAddress(*pubKey)
 	toAddress := common.HexToAddress(i.contract)
 
@@ -73,7 +73,7 @@ func createEthTx(ctx context.Context, i *Irys, amount *big.Int) (string, error) 
 		data,
 	)
 
-	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), i.token.GetPrivateKey())
+	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), i.currency.GetPrivateKey())
 	if err != nil {
 		return "", err
 	}

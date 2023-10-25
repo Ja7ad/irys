@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/token"
 	"log"
 	"math/big"
 )
 
 func main() {
-	matic, err := token.NewMatic(
+	matic, err := currency.NewMatic(
 		"foo",
 		"https://example.com")
 	if err != nil {

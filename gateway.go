@@ -23,7 +23,7 @@ const (
 )
 
 func (i *Irys) GetPrice(fileSize int) (*big.Int, error) {
-	url := fmt.Sprintf(_pricePath, i.network, i.token.GetBundlrName(), fileSize)
+	url := fmt.Sprintf(_pricePath, i.network, i.currency.GetName(), fileSize)
 	resp, err := i.client.Get(url)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (i *Irys) GetPrice(fileSize int) (*big.Int, error) {
 }
 
 func (i *Irys) GetBalance() (*big.Int, error) {
-	pbKey := i.token.GetPublicKey()
+	pbKey := i.currency.GetPublicKey()
 	url := fmt.Sprintf(_getBalance, i.network, crypto.PubkeyToAddress(*pbKey).Hex())
 
 	resp, err := i.client.Get(url)
@@ -118,7 +118,7 @@ func (i *Irys) TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUpCo
 }
 
 func (i *Irys) BasicUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error) {
-	url := fmt.Sprintf(_uploadPath, i.network, i.token.GetBundlrName())
+	url := fmt.Sprintf(_uploadPath, i.network, i.currency.GetName())
 	b, err := io.ReadAll(file)
 	if err != nil {
 		return types.Transaction{}, err
@@ -145,7 +145,7 @@ func (i *Irys) BasicUpload(ctx context.Context, file io.Reader, tags ...types.Ta
 }
 
 func (i *Irys) Upload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
-	url := fmt.Sprintf(_uploadPath, i.network, i.token.GetBundlrName())
+	url := fmt.Sprintf(_uploadPath, i.network, i.currency.GetName())
 	b, err := io.ReadAll(file)
 	if err != nil {
 		return types.Transaction{}, err
@@ -219,7 +219,7 @@ func (i *Irys) upload(url string, payload []byte, tags ...types.Tag) (types.Tran
 		Tags: tags,
 	}
 
-	if err := dataItem.Sign(i.token.GetSinger()); err != nil {
+	if err := dataItem.Sign(i.currency.GetSinger()); err != nil {
 		return types.Transaction{}, err
 	}
 

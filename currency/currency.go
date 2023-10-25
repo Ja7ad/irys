@@ -1,4 +1,4 @@
-package token
+package currency
 
 import (
 	"crypto/ecdsa"
@@ -8,23 +8,26 @@ import (
 
 const _0x_prefix = "0x"
 
-type TokenType uint8
+type CurrencyType uint8
 
 const (
-	ETHEREUM TokenType = iota
+	ETHEREUM CurrencyType = iota
 	MATIC
 	BNB
+	ARBITRUM
+	AVALANCHE
+	FANTOM
 	ARWEAVE
 )
 
-type Token interface {
+type Currency interface {
 	Ether
-	GetBundlrName() string
+	GetName() string
 	GetChain() string
 	GetSymbol() string
 	GetSinger() signer.Signer
 	GetRPCAddr() string
-	GetType() TokenType
+	GetType() CurrencyType
 }
 
 type Ether interface {

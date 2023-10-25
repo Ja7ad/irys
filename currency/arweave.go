@@ -1,4 +1,4 @@
-package token
+package currency
 
 import (
 	"github.com/Ja7ad/irys/errors"
@@ -18,12 +18,12 @@ type Arweave struct {
 	symbol    string
 	name      string
 	rpc       string
-	tokenType TokenType
+	tokenType CurrencyType
 	signer    *signer.ArweaveSigner
 }
 
 // NewArweaveFromFile create token object for arweave by private key file arweave (not supported for TopUp Balance)
-func NewArweaveFromFile(filePath, rpc string) (Token, error) {
+func NewArweaveFromFile(filePath, rpc string) (Currency, error) {
 	privateKey, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func NewArweaveFromFile(filePath, rpc string) (Token, error) {
 }
 
 // NewArweave create token object from arweave private key payload  (not supported for TopUp Balance)
-func NewArweave(privateKey string) (Token, error) {
+func NewArweave(privateKey string) (Currency, error) {
 	if len(privateKey) == 0 {
 		return nil, errors.ErrPrivateKeyIsEmpty
 	}
@@ -71,7 +71,7 @@ func (a *Arweave) GetSymbol() string {
 	return a.symbol
 }
 
-func (a *Arweave) GetBundlrName() string {
+func (a *Arweave) GetName() string {
 	return a.name
 }
 
@@ -83,6 +83,6 @@ func (a *Arweave) GetRPCAddr() string {
 	return a.rpc
 }
 
-func (a *Arweave) GetType() TokenType {
+func (a *Arweave) GetType() CurrencyType {
 	return a.tokenType
 }
