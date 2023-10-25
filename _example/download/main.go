@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	matic, err := token.NewMatic("foo")
+	matic, err := token.NewMatic("foo", "bar")
 	if err != nil {
 		log.Fatal(err)
 	}
