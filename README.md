@@ -17,6 +17,7 @@ example of irys sdk in golang
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/token"
@@ -25,7 +26,9 @@ import (
 )
 
 func main() {
-	matic, err := token.NewMatic("foo")
+	matic, err := token.NewMatic(
+		"foo",
+		"bar")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,17 +38,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	file, err := os.Open("image.jpg")
+	file, err := os.Open("image.jpeg")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tx, err := c.Upload(file)
+	tx, err := c.BasicUpload(context.Background(), file)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Println(tx)
+
 }
 ```
 
@@ -63,7 +67,7 @@ import (
 )
 
 func main() {
-	matic, err := token.NewMatic("foo")
+	matic, err := token.NewMatic("foo", "bar")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -100,7 +104,7 @@ import (
 )
 
 func main() {
-	matic, err := token.NewMatic("foo")
+	matic, err := token.NewMatic("foo", "bar")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -131,7 +135,7 @@ import (
 )
 
 func main() {
-	matic, err := token.NewMatic("foo")
+	matic, err := token.NewMatic("foo", "bar")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -156,7 +160,7 @@ func main() {
 - [x] polygon matic network
 - [ ] concurrent and chunk upload
 - [ ] unit test
-- [ ] found API
+- [x] found API
 - [ ] upload folder
 - [ ] withdraw balance
-- [ ] get loaded balance
+- [x] get loaded balance
