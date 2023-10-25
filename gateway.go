@@ -49,12 +49,8 @@ func (i *Irys) GetBalance() (*big.Int, error) {
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		b, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-		return nil, fmt.Errorf("%d: %s", resp.StatusCode, string(b))
+	if err := statusCheck(resp); err != nil {
+		return nil, err
 	}
 
 	b, err := decodeBody[types.BalanceResponse](resp.Body)
@@ -89,12 +85,8 @@ func (i *Irys) TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUpCo
 				return types.TopUpConfirmation{}, err
 			}
 
-			if resp.StatusCode != http.StatusOK {
-				b, err := io.ReadAll(resp.Body)
-				if err != nil {
-					return types.TopUpConfirmation{}, err
-				}
-				return types.TopUpConfirmation{}, fmt.Errorf("%d: %s", resp.StatusCode, string(b))
+			if err := statusCheck(resp); err != nil {
+				return types.TopUpConfirmation{}, err
 			}
 
 			confirm, err := decodeBody[types.TopUpConfirmationResponse](resp.Body)
@@ -177,12 +169,8 @@ func (i *Irys) Download(hash string) (*types.File, error) {
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		b, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-		return nil, fmt.Errorf("%d: %s", resp.StatusCode, string(b))
+	if err := statusCheck(resp); err != nil {
+		return nil, err
 	}
 
 	return &types.File{
@@ -200,12 +188,8 @@ func (i *Irys) GetMetaData(hash string) (types.Transaction, error) {
 		return types.Transaction{}, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		b, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return types.Transaction{}, err
-		}
-		return types.Transaction{}, fmt.Errorf("%d: %s", resp.StatusCode, string(b))
+	if err := statusCheck(resp); err != nil {
+		return types.Transaction{}, err
 	}
 
 	return decodeBody[types.Transaction](resp.Body)
@@ -238,12 +222,8 @@ func (i *Irys) upload(url string, payload []byte, tags ...types.Tag) (types.Tran
 		return types.Transaction{}, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		b, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return types.Transaction{}, err
-		}
-		return types.Transaction{}, fmt.Errorf("%d: %s", resp.StatusCode, string(b))
+	if err := statusCheck(resp); err != nil {
+		return types.Transaction{}, err
 	}
 
 	return decodeBody[types.Transaction](resp.Body)

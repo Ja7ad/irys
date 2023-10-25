@@ -4,9 +4,8 @@ import "errors"
 
 var (
 	ErrPrivateKeyIsEmpty                 = errors.New("private key is empty")
-	ErrTokenNotSupported                 = errors.New("token not supported method")
-	ErrFailedToGetNodeDetails            = errors.New("failed to get node details")
-	ErrTokenBundlrNameIsInvalid          = errors.New("token bundlr name is invalid")
+	ErrTokenNotSupported                 = errors.New("currency not supported method")
+	ErrCurrencyIsInvalid                 = errors.New("currency name is invalid")
 	ErrAssertionPublicKey                = errors.New("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
 	ErrSignerNotSpecified                = errors.New("signer not specified")
 	ErrEthereumSignatureMismatch         = errors.New("ethereum signature mismatch")
@@ -34,4 +33,5 @@ var (
 	ErrNotSigned                         = errors.New("bundle item not signed")
 	ErrNestedBundleInvalidLength         = errors.New("nested bundle invalid length in one of the fields")
 	ErrBalanceIsLow                      = errors.New("balance is low")
+	ErrNotEnoughBalance                  = errors.New("not enough balance")
 )

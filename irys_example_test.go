@@ -2,6 +2,7 @@ package irys
 
 import (
 	"fmt"
+	"github.com/Ja7ad/irys/currency"
 	"log"
 )
 

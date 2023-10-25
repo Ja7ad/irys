@@ -69,8 +69,8 @@ func (i *Irys) getTokenContractAddress(node Node, currency currency.Currency) (s
 		return "", err
 	}
 
-	if r.StatusCode != http.StatusOK {
-		return "", errors.ErrFailedToGetNodeDetails
+	if err := statusCheck(r); err != nil {
+		return "", err
 	}
 
 	resp, err := decodeBody[types.NodeInfo](r.Body)
@@ -82,5 +82,5 @@ func (i *Irys) getTokenContractAddress(node Node, currency currency.Currency) (s
 		return v, nil
 	}
 
-	return "", errors.ErrTokenBundlrNameIsInvalid
+	return "", errors.ErrCurrencyIsInvalid
 }

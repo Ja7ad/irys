@@ -2,8 +2,11 @@ package irys
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/Ja7ad/irys/errors"
 	"github.com/Ja7ad/irys/types"
 	"io"
+	"net/http"
 )
 
 func decodeBody[T any](body io.Reader) (T, error) {
@@ -25,4 +28,20 @@ func addContentType(contentType string, tags ...types.Tag) types.Tags {
 	}
 
 	return tags
+}
+
+func statusCheck(resp *http.Response) error {
+	switch {
+	case resp.StatusCode == http.StatusPaymentRequired:
+		return errors.ErrNotEnoughBalance
+	case resp.StatusCode >= http.StatusBadRequest:
+		b, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("%d: %s", resp.StatusCode, string(b))
+	case resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusAccepted:
+		return nil
+	}
+	return nil
 }
