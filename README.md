@@ -155,9 +155,13 @@ func main() {
 
 ## Todo
 
-- [x] arweave network
-- [x] ethereum network
-- [x] polygon matic network
+- [x] arweave token
+- [x] ethereum token
+- [x] polygon matic token
+- [x] fantom token
+- [x] bnb token
+- [x] arbitrum token
+- [x] avalanche token
 - [ ] concurrent and chunk upload
 - [ ] unit test
 - [x] found API

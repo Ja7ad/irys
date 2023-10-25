@@ -14,6 +14,9 @@ const (
 	ETHEREUM TokenType = iota
 	MATIC
 	BNB
+	AVALANCHE
+	FANTOM
+	ARBITRUM
 	ARWEAVE
 )
 
