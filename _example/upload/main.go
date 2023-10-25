@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Ja7ad/irys"
+	"github.com/Ja7ad/irys/currency"
 	"log"
 	"os"
 )

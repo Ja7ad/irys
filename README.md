@@ -20,13 +20,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/token"
+	"github.com/Ja7ad/irys/currency"
 	"log"
 	"os"
 )
 
 func main() {
-	matic, err := token.NewMatic(
+	matic, err := currency.NewMatic(
 		"foo",
 		"bar")
 	if err != nil {
@@ -61,13 +61,13 @@ package main
 import (
 	"fmt"
 	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/token"
+	"github.com/Ja7ad/irys/currency"
 	"io"
 	"log"
 )
 
 func main() {
-	matic, err := token.NewMatic("foo", "bar")
+	matic, err := currency.NewMatic("foo", "bar")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -99,12 +99,12 @@ package main
 import (
 	"fmt"
 	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/token"
+	"github.com/Ja7ad/irys/currency"
 	"log"
 )
 
 func main() {
-	matic, err := token.NewMatic("foo", "bar")
+	matic, err := currency.NewMatic("foo", "bar")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -130,12 +130,12 @@ package main
 import (
 	"fmt"
 	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/token"
+	"github.com/Ja7ad/irys/currency"
 	"log"
 )
 
 func main() {
-	matic, err := token.NewMatic("foo", "bar")
+	matic, err := currency.NewMatic("foo", "bar")
 	if err != nil {
 		log.Fatal(err)
 	}

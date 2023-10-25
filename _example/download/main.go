@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/Ja7ad/irys"
+	"github.com/Ja7ad/irys/currency"
 	"io"
 	"log"
 )
