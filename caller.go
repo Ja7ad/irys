@@ -36,14 +36,14 @@ const (
 	_maxRetries = 3       // define the maximum number of retries for a timeout error
 )
 
-func (i *Client) GetPrice(ctx context.Context, fileSize int) (*big.Int, error) {
-	url := fmt.Sprintf(_pricePath, i.network, i.currency.GetName(), fileSize)
+func (c *Client) GetPrice(ctx context.Context, fileSize int) (*big.Int, error) {
+	url := fmt.Sprintf(_pricePath, c.network, c.currency.GetName(), fileSize)
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := i.client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -60,16 +60,16 @@ func (i *Client) GetPrice(ctx context.Context, fileSize int) (*big.Int, error) {
 	}
 }
 
-func (i *Client) GetBalance(ctx context.Context) (*big.Int, error) {
-	pbKey := i.currency.GetPublicKey()
-	url := fmt.Sprintf(_getBalance, i.network, crypto.PubkeyToAddress(*pbKey).Hex())
+func (c *Client) GetBalance(ctx context.Context) (*big.Int, error) {
+	pbKey := c.currency.GetPublicKey()
+	url := fmt.Sprintf(_getBalance, c.network, crypto.PubkeyToAddress(*pbKey).Hex())
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := i.client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -90,10 +90,10 @@ func (i *Client) GetBalance(ctx context.Context) (*big.Int, error) {
 	}
 }
 
-func (i *Client) TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUpConfirmation, error) {
-	urlConfirm := fmt.Sprintf(_sendTxToBalance, i.network)
+func (c *Client) TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUpConfirmation, error) {
+	urlConfirm := fmt.Sprintf(_sendTxToBalance, c.network)
 
-	hash, err := i.createTx(ctx, amount)
+	hash, err := c.createTx(ctx, amount)
 	if err != nil {
 		return types.TopUpConfirmation{}, err
 	}
@@ -112,7 +112,7 @@ func (i *Client) TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUp
 
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := i.client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return types.TopUpConfirmation{}, err
 	}
@@ -135,7 +135,7 @@ func (i *Client) TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUp
 		if confirm.Confirmed {
 			var balance *big.Int
 			err = retry.Do(func() error {
-				balance, err = i.GetBalance(ctx)
+				balance, err = c.GetBalance(ctx)
 				return err
 			}, retry.Attempts(3))
 
@@ -153,15 +153,15 @@ func (i *Client) TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUp
 	}
 }
 
-func (i *Client) Download(ctx context.Context, hash string) (*types.File, error) {
-	url := fmt.Sprintf(_downloadPath, i.network, hash)
+func (c *Client) Download(ctx context.Context, hash string) (*types.File, error) {
+	url := fmt.Sprintf(_downloadPath, c.network, hash)
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := i.client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -183,15 +183,15 @@ func (i *Client) Download(ctx context.Context, hash string) (*types.File, error)
 	}
 }
 
-func (i *Client) GetMetaData(ctx context.Context, hash string) (types.Transaction, error) {
-	url := fmt.Sprintf(_txPath, i.network, hash)
+func (c *Client) GetMetaData(ctx context.Context, hash string) (types.Transaction, error) {
+	url := fmt.Sprintf(_txPath, c.network, hash)
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return types.Transaction{}, err
 	}
 
-	resp, err := i.client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return types.Transaction{}, err
 	}
@@ -209,73 +209,73 @@ func (i *Client) GetMetaData(ctx context.Context, hash string) (types.Transactio
 	}
 }
 
-func (i *Client) BasicUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error) {
-	url := fmt.Sprintf(_uploadPath, i.network, i.currency.GetName())
+func (c *Client) BasicUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error) {
+	url := fmt.Sprintf(_uploadPath, c.network, c.currency.GetName())
 	b, err := io.ReadAll(file)
 	if err != nil {
 		return types.Transaction{}, err
 	}
 
-	price, err := i.GetPrice(ctx, len(b))
+	price, err := c.GetPrice(ctx, len(b))
 	if err != nil {
 		return types.Transaction{}, err
 	}
-	i.debugMsg("[BasicUpload] get price %s", price.String())
+	c.debugMsg("[BasicUpload] get price %s", price.String())
 
-	balance, err := i.GetBalance(ctx)
+	balance, err := c.GetBalance(ctx)
 	if err != nil {
 		return types.Transaction{}, err
 	}
-	i.debugMsg("[BasicUpload] get balance %s", balance.String())
+	c.debugMsg("[BasicUpload] get balance %s", balance.String())
 
 	if balance.Cmp(price) < 0 {
-		_, err := i.TopUpBalance(ctx, price)
+		_, err := c.TopUpBalance(ctx, price)
 		if err != nil {
 			return types.Transaction{}, err
 		}
-		i.debugMsg("[BasicUpload] topUp balance")
+		c.debugMsg("[BasicUpload] topUp balance")
 	}
 
-	return i.upload(ctx, url, b, tags...)
+	return c.upload(ctx, url, b, tags...)
 }
 
-func (i *Client) Upload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
-	url := fmt.Sprintf(_uploadPath, i.network, i.currency.GetName())
+func (c *Client) Upload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
+	url := fmt.Sprintf(_uploadPath, c.network, c.currency.GetName())
 	b, err := io.ReadAll(file)
 	if err != nil {
 		return types.Transaction{}, err
 	}
 
 	if price == nil {
-		price, err = i.GetPrice(ctx, len(b))
+		price, err = c.GetPrice(ctx, len(b))
 		if err != nil {
 			return types.Transaction{}, err
 		}
-		i.debugMsg("[Upload] get price %s", price.String())
+		c.debugMsg("[Upload] get price %s", price.String())
 	}
 
-	balance, err := i.GetBalance(ctx)
+	balance, err := c.GetBalance(ctx)
 	if err != nil {
 		return types.Transaction{}, err
 	}
-	i.debugMsg("[Upload] get balance %s", balance.String())
+	c.debugMsg("[Upload] get balance %s", balance.String())
 
 	if balance.Cmp(price) < 0 {
 		return types.Transaction{}, errs.ErrBalanceIsLow
 	}
 
-	return i.upload(ctx, url, b, tags...)
+	return c.upload(ctx, url, b, tags...)
 }
 
-func (i *Client) ChunkUpload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
+func (c *Client) ChunkUpload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
 	var wg sync.WaitGroup
 	jobsCh := make(chan types.Job)
 	errCh := make(chan error)
 
 	for w := 0; w < _workers; w++ {
 		go func(workerId int) {
-			i.debugMsg("[ChunkUpload] create worker %v", workerId)
-			errCh <- i.worker(ctx, workerId, &wg, jobsCh)
+			c.debugMsg("[ChunkUpload] create worker %v", workerId)
+			errCh <- c.worker(ctx, workerId, &wg, jobsCh)
 		}(w)
 	}
 
@@ -293,7 +293,7 @@ func (i *Client) ChunkUpload(ctx context.Context, file io.Reader, price *big.Int
 		chunk := types.Chunk{ID: uuid.New().String(), Offset: int64(index * _chunkSize), Data: chunkData[:n]}
 		job := types.Job{Chunk: chunk, Index: index}
 		jobsCh <- job
-		i.debugMsg("[ChunkUpload] create job with index %v", index)
+		c.debugMsg("[ChunkUpload] create job with index %v", index)
 		index++
 		wg.Add(1)
 	}
@@ -317,7 +317,7 @@ func (i *Client) ChunkUpload(ctx context.Context, file io.Reader, price *big.Int
 	}
 }
 
-func (i *Client) worker(ctx context.Context, id int, wg *sync.WaitGroup, jobs <-chan types.Job) error {
+func (c *Client) worker(ctx context.Context, id int, wg *sync.WaitGroup, jobs <-chan types.Job) error {
 	defer wg.Done()
 	for job := range jobs {
 		numTries := 0
@@ -326,14 +326,14 @@ func (i *Client) worker(ctx context.Context, id int, wg *sync.WaitGroup, jobs <-
 			case <-ctx.Done():
 				return ctx.Err()
 			default:
-				err := i.createChunkRequest(ctx, job.Chunk, job.Index, id)
+				err := c.createChunkRequest(ctx, job.Chunk, job.Index, id)
 				// if we have a network timeout error, retry the request
 				var urlErr *url.Error
 				if errors.As(err, &urlErr) {
 					var netErr net.Error
 					if errors.As(urlErr.Err, &netErr) && netErr.Timeout() {
 						numTries++
-						i.debugMsg("timeout occurred during execution chunk upload, retrying... (Attempt %d of %d)", numTries, _maxRetries)
+						c.debugMsg("timeout occurred during execution chunk upload, retrying... (Attempt %d of %d)", numTries, _maxRetries)
 						continue
 					}
 				}
@@ -344,8 +344,8 @@ func (i *Client) worker(ctx context.Context, id int, wg *sync.WaitGroup, jobs <-
 	return nil
 }
 
-func (i *Client) createChunkRequest(ctx context.Context, chunk types.Chunk, index, workerID int) error {
-	url := fmt.Sprintf(_chunkUpload, i.network, i.currency.GetName(), chunk.ID, chunk.Offset)
+func (c *Client) createChunkRequest(ctx context.Context, chunk types.Chunk, index, workerID int) error {
+	url := fmt.Sprintf(_chunkUpload, c.network, c.currency.GetName(), chunk.ID, chunk.Offset)
 	data, err := json.Marshal(chunk)
 	if err != nil {
 		return err
@@ -359,7 +359,7 @@ func (i *Client) createChunkRequest(ctx context.Context, chunk types.Chunk, inde
 	req.Header.Set("Content-Type", "application/octet-stream")
 	req.Header.Set("x-chunking-version", "2")
 
-	resp, err := i.client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -374,12 +374,12 @@ func (i *Client) createChunkRequest(ctx context.Context, chunk types.Chunk, inde
 		if err != nil {
 			return err
 		}
-		i.debugMsg("worker %d do request for chunk %d, response: %v", workerID, index, chunkResp)
+		c.debugMsg("worker %d do request for chunk %d, response: %v", workerID, index, chunkResp)
 		return statusCheck(resp)
 	}
 }
 
-func (i *Client) upload(ctx context.Context, url string, payload []byte, tags ...types.Tag) (types.Transaction, error) {
+func (c *Client) upload(ctx context.Context, url string, payload []byte, tags ...types.Tag) (types.Transaction, error) {
 	tags = addContentType(http.DetectContentType(payload), tags...)
 
 	dataItem := types.BundleItem{
@@ -387,7 +387,7 @@ func (i *Client) upload(ctx context.Context, url string, payload []byte, tags ..
 		Tags: tags,
 	}
 
-	if err := dataItem.Sign(i.currency.GetSinger()); err != nil {
+	if err := dataItem.Sign(c.currency.GetSinger()); err != nil {
 		return types.Transaction{}, err
 	}
 
@@ -407,9 +407,9 @@ func (i *Client) upload(ctx context.Context, url string, payload []byte, tags ..
 	}
 
 	req.Header.Set("Content-Type", "application/octet-stream")
-	i.debugMsg("[Upload] create upload request")
+	c.debugMsg("[Upload] create upload request")
 
-	resp, err := i.client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return types.Transaction{}, err
 	}

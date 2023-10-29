@@ -45,6 +45,9 @@ type Irys interface {
 	GetBalance(ctx context.Context) (*big.Int, error)
 	// TopUpBalance top up your balance base on your amount in selected node
 	TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUpConfirmation, error)
+
+	// Close stop irys client request
+	Close()
 }
 
 // New create IrysClient object
@@ -93,6 +96,10 @@ func New(node Node, currency currency.Currency, debug bool, options ...Option) (
 		irys.client.Logger = nil
 	}
 
+	if irys.client.HTTPClient.Transport == nil {
+		irys.client.HTTPClient.Transport = http.DefaultTransport.(*http.Transport).Clone()
+	}
+
 	irys.mu.Lock()
 	contract, err := irys.getTokenContractAddress(node, currency)
 	if err != nil {
@@ -105,8 +112,17 @@ func New(node Node, currency currency.Currency, debug bool, options ...Option) (
 	return irys, nil
 }
 
-func (i *Client) getTokenContractAddress(node Node, currency currency.Currency) (string, error) {
-	r, err := i.client.Get(string(node))
+func (c *Client) Close() {
+	type closeIdler interface {
+		CloseIdleConnections()
+	}
+	if tr, ok := c.client.HTTPClient.Transport.(closeIdler); ok {
+		tr.CloseIdleConnections()
+	}
+}
+
+func (c *Client) getTokenContractAddress(node Node, currency currency.Currency) (string, error) {
+	r, err := c.client.Get(string(node))
 	if err != nil {
 		return "", err
 	}
@@ -121,15 +137,15 @@ func (i *Client) getTokenContractAddress(node Node, currency currency.Currency) 
 	}
 
 	if v, ok := resp.Addresses[currency.GetName()]; ok {
-		i.debugMsg("set currency address %s base on currency %s", v, currency.GetName())
+		c.debugMsg("set currency address %s base on currency %s", v, currency.GetName())
 		return v, nil
 	}
 
 	return "", errors.ErrCurrencyIsInvalid
 }
 
-func (i *Client) debugMsg(msg string, args ...any) {
-	if i.debug {
-		i.logging.Debug(fmt.Sprintf(msg, args...))
+func (c *Client) debugMsg(msg string, args ...any) {
+	if c.debug {
+		c.logging.Debug(fmt.Sprintf(msg, args...))
 	}
 }
