@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/currency"
@@ -8,7 +9,9 @@ import (
 )
 
 func main() {
-	matic, err := currency.NewMatic("foo", "bar")
+	matic, err := currency.NewMatic(
+		"foobar",
+		"https://exampleRPC.com")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -17,7 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	p, err := c.GetPrice(100000)
+	p, err := c.GetPrice(context.Background(), 100000)
 	if err != nil {
 		log.Fatal(err)
 	}

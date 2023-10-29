@@ -1,6 +1,7 @@
 package irys
 
 import (
+	"context"
 	"fmt"
 	"github.com/Ja7ad/irys/currency"
 	"log"
@@ -16,7 +17,7 @@ func ExampleNew() {
 		log.Fatal(err)
 	}
 
-	p, err := c.GetPrice(100000)
+	p, err := c.GetPrice(context.Background(), 100000)
 	if err != nil {
 		log.Fatal(err)
 	}

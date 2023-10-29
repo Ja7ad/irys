@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/currency"
@@ -9,16 +10,19 @@ import (
 )
 
 func main() {
-	matic, err := currency.NewMatic("foo", "bar")
+	matic, err := currency.NewMatic(
+		"foobar",
+		"https://exampleRPC.com")
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	c, err := irys.New(irys.DefaultNode2, matic)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	file, err := c.Download("XjzDyneweD_Dmhuaipbi7HyXXvsY6IkMcIsumlB0G2M")
+	file, err := c.Download(context.Background(), "XjzDyneweD_Dmhuaipbi7HyXXvsY6IkMcIsumlB0G2M")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,5 +33,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(string(b), file.Header, file.ContentLength, file.ContentType)
+	fmt.Println(len(b), file.Header, file.ContentLength, file.ContentType)
 }

@@ -7,27 +7,31 @@ import (
 	"github.com/Ja7ad/irys/currency"
 	"log"
 	"os"
+	"time"
 )
 
 func main() {
 	matic, err := currency.NewMatic(
-		"foo",
-		"bar")
+		"foobar",
+		"https://exampleRPC.com")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	c, err := irys.New(irys.DefaultNode2, matic)
+	c, err := irys.New(irys.DefaultNode1, matic)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	file, err := os.Open("image.jpeg")
+	file, err := os.Open("/home/javad/Downloads/mtn.json")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tx, err := c.BasicUpload(context.Background(), file)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	tx, err := c.BasicUpload(ctx, file)
 	if err != nil {
 		log.Fatal(err)
 	}

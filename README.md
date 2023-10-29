@@ -9,7 +9,7 @@ go get -u  github.com/Ja7ad/irys
 
 ## Examples
 
-example of irys sdk in golang 
+[example](_example) of irys sdk in golang 
 
 ### Upload
 
@@ -59,6 +59,7 @@ func main() {
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/currency"
@@ -76,7 +77,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	file, err := c.Download("XjzDyneweD_Dmhuaipbi7HyXXvsY6IkMcIsumlB0G2M")
+	file, err := c.Download(context.Background(), "XjzDyneweD_Dmhuaipbi7HyXXvsY6IkMcIsumlB0G2M")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -97,6 +98,7 @@ func main() {
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/currency"
@@ -113,7 +115,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	p, err := c.GetPrice(100000)
+	p, err := c.GetPrice(context.Background(), 100000)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -128,6 +130,7 @@ func main() {
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/currency"
@@ -144,7 +147,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	tx, err := c.GetMetaData("XjzDyneweD_Dmhuaipbi7HyXXvsY6IkMcIsumlB0G2M")
+	tx, err := c.GetMetaData(context.Background(), "XjzDyneweD_Dmhuaipbi7HyXXvsY6IkMcIsumlB0G2M")
 	if err != nil {
 		log.Fatal(err)
 	}
