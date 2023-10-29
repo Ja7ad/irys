@@ -62,10 +62,9 @@ type Job struct {
 }
 
 type ChunkResponse struct {
-	ID   string
-	Min  int
-	Max  int
-	Data string
+	ID  string
+	Min int
+	Max int
 }
 
 func (b BalanceResponse) ToBigInt() *big.Int {

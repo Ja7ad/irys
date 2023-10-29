@@ -33,8 +33,10 @@ type Irys interface {
 	BasicUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error)
 	// Upload file with check balance
 	Upload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error)
-	// ChunkUpload upload file chunk concurrent
-	ChunkUpload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error)
+	// ChunkUpload upload file chunk concurrent for big files (min size: 500 KB, max size: 95 MB)
+	//
+	// Note: this feature is experimental, maybe not work.
+	ChunkUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error)
 
 	// Download get file with header details
 	Download(ctx context.Context, hash string) (*types.File, error)
@@ -55,7 +57,7 @@ func New(node Node, currency currency.Currency, debug bool, options ...Option) (
 	irys := new(Client)
 
 	httpClient := &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: 300 * time.Second,
 	}
 
 	irys.client = retryablehttp.NewClient()

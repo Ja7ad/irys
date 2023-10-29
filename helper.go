@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Ja7ad/irys/errors"
+	"github.com/Ja7ad/irys/signer"
 	"github.com/Ja7ad/irys/types"
 	"io"
 	"net/http"
@@ -44,4 +45,34 @@ func statusCheck(resp *http.Response) error {
 		return nil
 	}
 	return nil
+}
+
+func signFile(file io.Reader, signer signer.Signer, tags ...types.Tag) ([]byte, error) {
+	b, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	tags = addContentType(http.DetectContentType(b), tags...)
+
+	dataItem := types.BundleItem{
+		Data: types.Base64String(b),
+		Tags: tags,
+	}
+
+	if err := dataItem.Sign(signer); err != nil {
+		return nil, err
+	}
+
+	reader, err := dataItem.Reader()
+	if err != nil {
+		return nil, err
+	}
+
+	signedByte, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return signedByte, nil
 }

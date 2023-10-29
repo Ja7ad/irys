@@ -162,7 +162,8 @@ func main() {
 - [x] ethereum network
 - [x] polygon matic network
 - [x] concurrent and chunk upload
-- [ ] get chunk upload transaction response
+- [x] get chunk upload transaction response
+- [ ] fix bug finish chunk upload for finalizing
 - [ ] unit test
 - [x] found API
 - [ ] upload folder

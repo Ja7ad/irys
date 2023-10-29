@@ -4,20 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	errs "github.com/Ja7ad/irys/errors"
 	"github.com/Ja7ad/irys/types"
 	retry "github.com/avast/retry-go"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-retryablehttp"
 	"io"
 	"math/big"
-	"net"
 	"net/http"
-	"net/url"
-	"sync"
 )
 
 const (
@@ -31,9 +26,10 @@ const (
 )
 
 const (
-	_chunkSize  = 1 << 20 // 1MB, define your chunk size here
-	_workers    = 5       // define the number of workers in the pool
-	_maxRetries = 3       // define the maximum number of retries for a timeout error
+	_defaultNumWorkers = 5 // define the number of workers in the pool
+	_maxRetries        = 3 // define the maximum number of retries for a timeout error
+	_defaultMinChunk   = 500000
+	_defaultMaxChunk   = 95000000
 )
 
 func (c *Client) GetPrice(ctx context.Context, fileSize int) (*big.Int, error) {
@@ -236,7 +232,7 @@ func (c *Client) BasicUpload(ctx context.Context, file io.Reader, tags ...types.
 		c.debugMsg("[BasicUpload] topUp balance")
 	}
 
-	return c.upload(ctx, url, b, tags...)
+	return c.upload(ctx, url, file, tags...)
 }
 
 func (c *Client) Upload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
@@ -264,139 +260,11 @@ func (c *Client) Upload(ctx context.Context, file io.Reader, price *big.Int, tag
 		return types.Transaction{}, errs.ErrBalanceIsLow
 	}
 
-	return c.upload(ctx, url, b, tags...)
+	return c.upload(ctx, url, file, tags...)
 }
 
-func (c *Client) ChunkUpload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
-	var wg sync.WaitGroup
-	jobsCh := make(chan types.Job)
-	errCh := make(chan error)
-
-	for w := 0; w < _workers; w++ {
-		go func(workerId int) {
-			c.debugMsg("[ChunkUpload] create worker %v", workerId)
-			errCh <- c.worker(ctx, workerId, &wg, jobsCh)
-		}(w)
-	}
-
-	index := 0
-	for {
-		chunkData := make([]byte, _chunkSize)
-		n, err := file.Read(chunkData)
-		if err != nil {
-			if err != io.EOF {
-				return types.Transaction{}, err
-			}
-			break
-		}
-
-		chunk := types.Chunk{ID: uuid.New().String(), Offset: int64(index * _chunkSize), Data: chunkData[:n]}
-		job := types.Job{Chunk: chunk, Index: index}
-		jobsCh <- job
-		c.debugMsg("[ChunkUpload] create job with index %v", index)
-		index++
-		wg.Add(1)
-	}
-
-	go func() {
-		wg.Wait()
-		close(jobsCh)
-		close(errCh)
-	}()
-
-	for err := range errCh {
-		return types.Transaction{}, err
-	}
-
-	select {
-	case <-ctx.Done():
-		return types.Transaction{}, ctx.Err()
-	default:
-		//TODO: get transaction details after complete chunk upload
-		return types.Transaction{}, nil
-	}
-}
-
-func (c *Client) worker(ctx context.Context, id int, wg *sync.WaitGroup, jobs <-chan types.Job) error {
-	defer wg.Done()
-	for job := range jobs {
-		numTries := 0
-		for numTries < _maxRetries {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			default:
-				err := c.createChunkRequest(ctx, job.Chunk, job.Index, id)
-				// if we have a network timeout error, retry the request
-				var urlErr *url.Error
-				if errors.As(err, &urlErr) {
-					var netErr net.Error
-					if errors.As(urlErr.Err, &netErr) && netErr.Timeout() {
-						numTries++
-						c.debugMsg("timeout occurred during execution chunk upload, retrying... (Attempt %d of %d)", numTries, _maxRetries)
-						continue
-					}
-				}
-				break
-			}
-		}
-	}
-	return nil
-}
-
-func (c *Client) createChunkRequest(ctx context.Context, chunk types.Chunk, index, workerID int) error {
-	url := fmt.Sprintf(_chunkUpload, c.network, c.currency.GetName(), chunk.ID, chunk.Offset)
-	data, err := json.Marshal(chunk)
-	if err != nil {
-		return err
-	}
-
-	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(data))
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Content-Type", "application/octet-stream")
-	req.Header.Set("x-chunking-version", "2")
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		chunkResp, err := decodeBody[types.ChunkResponse](resp.Body)
-		if err != nil {
-			return err
-		}
-		c.debugMsg("worker %d do request for chunk %d, response: %v", workerID, index, chunkResp)
-		return statusCheck(resp)
-	}
-}
-
-func (c *Client) upload(ctx context.Context, url string, payload []byte, tags ...types.Tag) (types.Transaction, error) {
-	tags = addContentType(http.DetectContentType(payload), tags...)
-
-	dataItem := types.BundleItem{
-		Data: types.Base64String(payload),
-		Tags: tags,
-	}
-
-	if err := dataItem.Sign(c.currency.GetSinger()); err != nil {
-		return types.Transaction{}, err
-	}
-
-	reader, err := dataItem.Reader()
-	if err != nil {
-		return types.Transaction{}, err
-	}
-
-	b, err := io.ReadAll(reader)
+func (c *Client) upload(ctx context.Context, url string, file io.Reader, tags ...types.Tag) (types.Transaction, error) {
+	b, err := signFile(file, c.currency.GetSinger(), tags...)
 	if err != nil {
 		return types.Transaction{}, err
 	}

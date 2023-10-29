@@ -34,4 +34,5 @@ var (
 	ErrNestedBundleInvalidLength         = errors.New("nested bundle invalid length in one of the fields")
 	ErrBalanceIsLow                      = errors.New("balance is low")
 	ErrNotEnoughBalance                  = errors.New("not enough balance")
+	ErrNotAllowedChunkSize               = errors.New("chunk size file is greater 95 MB or lesser 500 KB")
 )
