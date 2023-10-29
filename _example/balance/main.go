@@ -6,13 +6,12 @@ import (
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/currency"
 	"log"
-	"math/big"
 )
 
 func main() {
 	matic, err := currency.NewMatic(
-		"foo",
-		"https://example.com")
+		"foobar",
+		"https://exampleRPC.com")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -22,17 +21,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	b, err := c.GetBalance()
+	ctx := context.Background()
+
+	b, err := c.GetBalance(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Println(b.String())
-
-	conf, err := c.TopUpBalance(context.Background(), big.NewInt(2000000000000000))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(conf)
 }
