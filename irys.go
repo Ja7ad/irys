@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-type IrysClient struct {
+type Client struct {
 	mu       *sync.Mutex
 	client   *retryablehttp.Client
 	network  Node
@@ -49,7 +49,7 @@ type Irys interface {
 
 // New create IrysClient object
 func New(node Node, currency currency.Currency, debug bool, options ...Option) (Irys, error) {
-	irys := new(IrysClient)
+	irys := new(Client)
 
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
@@ -62,31 +62,35 @@ func New(node Node, currency currency.Currency, debug bool, options ...Option) (
 	irys.currency = currency
 	irys.mu = new(sync.Mutex)
 
-	logging, err := logger.New(logger.CONSOLE_HANDLER, logger.Options{
-		Development:  false,
-		Debug:        false,
-		EnableCaller: true,
-		SkipCaller:   4,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	irys.logging = logging
 	irys.debug = debug
 
 	irys.client.RetryMax = 5
 	irys.client.RetryWaitMin = 1 * time.Second
 	irys.client.RetryWaitMax = 30 * time.Second
 	irys.client.ErrorHandler = retryablehttp.PassthroughErrorHandler
-	irys.client.Logger = logging
-
-	if !debug {
-		irys.client.Logger = nil
-	}
 
 	for _, opt := range options {
 		opt(irys)
+	}
+
+	if irys.logging == nil {
+		logging, err := logger.New(logger.CONSOLE_HANDLER, logger.Options{
+			Development:  false,
+			Debug:        false,
+			EnableCaller: true,
+			SkipCaller:   4,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		irys.logging = logging
+	}
+
+	irys.client.Logger = irys.logging
+
+	if !debug {
+		irys.client.Logger = nil
 	}
 
 	irys.mu.Lock()
@@ -101,7 +105,7 @@ func New(node Node, currency currency.Currency, debug bool, options ...Option) (
 	return irys, nil
 }
 
-func (i *IrysClient) getTokenContractAddress(node Node, currency currency.Currency) (string, error) {
+func (i *Client) getTokenContractAddress(node Node, currency currency.Currency) (string, error) {
 	r, err := i.client.Get(string(node))
 	if err != nil {
 		return "", err
@@ -124,7 +128,7 @@ func (i *IrysClient) getTokenContractAddress(node Node, currency currency.Curren
 	return "", errors.ErrCurrencyIsInvalid
 }
 
-func (i *IrysClient) debugMsg(msg string, args ...any) {
+func (i *Client) debugMsg(msg string, args ...any) {
 	if i.debug {
 		i.logging.Debug(fmt.Sprintf(msg, args...))
 	}

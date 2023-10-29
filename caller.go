@@ -36,7 +36,7 @@ const (
 	_maxRetries = 3       // define the maximum number of retries for a timeout error
 )
 
-func (i *IrysClient) GetPrice(ctx context.Context, fileSize int) (*big.Int, error) {
+func (i *Client) GetPrice(ctx context.Context, fileSize int) (*big.Int, error) {
 	url := fmt.Sprintf(_pricePath, i.network, i.currency.GetName(), fileSize)
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -60,7 +60,7 @@ func (i *IrysClient) GetPrice(ctx context.Context, fileSize int) (*big.Int, erro
 	}
 }
 
-func (i *IrysClient) GetBalance(ctx context.Context) (*big.Int, error) {
+func (i *Client) GetBalance(ctx context.Context) (*big.Int, error) {
 	pbKey := i.currency.GetPublicKey()
 	url := fmt.Sprintf(_getBalance, i.network, crypto.PubkeyToAddress(*pbKey).Hex())
 
@@ -90,7 +90,7 @@ func (i *IrysClient) GetBalance(ctx context.Context) (*big.Int, error) {
 	}
 }
 
-func (i *IrysClient) TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUpConfirmation, error) {
+func (i *Client) TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUpConfirmation, error) {
 	urlConfirm := fmt.Sprintf(_sendTxToBalance, i.network)
 
 	hash, err := i.createTx(ctx, amount)
@@ -153,7 +153,7 @@ func (i *IrysClient) TopUpBalance(ctx context.Context, amount *big.Int) (types.T
 	}
 }
 
-func (i *IrysClient) Download(ctx context.Context, hash string) (*types.File, error) {
+func (i *Client) Download(ctx context.Context, hash string) (*types.File, error) {
 	url := fmt.Sprintf(_downloadPath, i.network, hash)
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -183,7 +183,7 @@ func (i *IrysClient) Download(ctx context.Context, hash string) (*types.File, er
 	}
 }
 
-func (i *IrysClient) GetMetaData(ctx context.Context, hash string) (types.Transaction, error) {
+func (i *Client) GetMetaData(ctx context.Context, hash string) (types.Transaction, error) {
 	url := fmt.Sprintf(_txPath, i.network, hash)
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -209,7 +209,7 @@ func (i *IrysClient) GetMetaData(ctx context.Context, hash string) (types.Transa
 	}
 }
 
-func (i *IrysClient) BasicUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error) {
+func (i *Client) BasicUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error) {
 	url := fmt.Sprintf(_uploadPath, i.network, i.currency.GetName())
 	b, err := io.ReadAll(file)
 	if err != nil {
@@ -239,7 +239,7 @@ func (i *IrysClient) BasicUpload(ctx context.Context, file io.Reader, tags ...ty
 	return i.upload(ctx, url, b, tags...)
 }
 
-func (i *IrysClient) Upload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
+func (i *Client) Upload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
 	url := fmt.Sprintf(_uploadPath, i.network, i.currency.GetName())
 	b, err := io.ReadAll(file)
 	if err != nil {
@@ -267,7 +267,7 @@ func (i *IrysClient) Upload(ctx context.Context, file io.Reader, price *big.Int,
 	return i.upload(ctx, url, b, tags...)
 }
 
-func (i *IrysClient) ChunkUpload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
+func (i *Client) ChunkUpload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
 	var wg sync.WaitGroup
 	jobsCh := make(chan types.Job)
 	errCh := make(chan error)
@@ -317,7 +317,7 @@ func (i *IrysClient) ChunkUpload(ctx context.Context, file io.Reader, price *big
 	}
 }
 
-func (i *IrysClient) worker(ctx context.Context, id int, wg *sync.WaitGroup, jobs <-chan types.Job) error {
+func (i *Client) worker(ctx context.Context, id int, wg *sync.WaitGroup, jobs <-chan types.Job) error {
 	defer wg.Done()
 	for job := range jobs {
 		numTries := 0
@@ -344,7 +344,7 @@ func (i *IrysClient) worker(ctx context.Context, id int, wg *sync.WaitGroup, job
 	return nil
 }
 
-func (i *IrysClient) createChunkRequest(ctx context.Context, chunk types.Chunk, index, workerID int) error {
+func (i *Client) createChunkRequest(ctx context.Context, chunk types.Chunk, index, workerID int) error {
 	url := fmt.Sprintf(_chunkUpload, i.network, i.currency.GetName(), chunk.ID, chunk.Offset)
 	data, err := json.Marshal(chunk)
 	if err != nil {
@@ -374,12 +374,12 @@ func (i *IrysClient) createChunkRequest(ctx context.Context, chunk types.Chunk, 
 		if err != nil {
 			return err
 		}
-		i.debugMsg("worker %d do request for chunk %d, response: %s", workerID, index, chunkResp)
+		i.debugMsg("worker %d do request for chunk %d, response: %v", workerID, index, chunkResp)
 		return statusCheck(resp)
 	}
 }
 
-func (i *IrysClient) upload(ctx context.Context, url string, payload []byte, tags ...types.Tag) (types.Transaction, error) {
+func (i *Client) upload(ctx context.Context, url string, payload []byte, tags ...types.Tag) (types.Transaction, error) {
 	tags = addContentType(http.DetectContentType(payload), tags...)
 
 	dataItem := types.BundleItem{

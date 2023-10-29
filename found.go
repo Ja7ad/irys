@@ -12,7 +12,7 @@ import (
 	"math/big"
 )
 
-func (i *IrysClient) createTx(ctx context.Context, amount *big.Int) (string, error) {
+func (i *Client) createTx(ctx context.Context, amount *big.Int) (string, error) {
 	switch i.currency.GetType() {
 	case currency.ETHEREUM, currency.MATIC, currency.AVALANCHE, currency.FANTOM, currency.BNB, currency.ARBITRUM:
 		i.debugMsg("[Transaction] create ethereum transaction")
@@ -29,7 +29,7 @@ func (i *IrysClient) createTx(ctx context.Context, amount *big.Int) (string, err
 	return "", errors.ErrTokenNotSupported
 }
 
-func createEthTx(ctx context.Context, i *IrysClient, amount *big.Int) (string, error) {
+func createEthTx(ctx context.Context, i *Client, amount *big.Int) (string, error) {
 	pubKey := i.currency.GetPublicKey()
 	client := i.currency.GetRPCClient()
 	fromAddress := crypto.PubkeyToAddress(*pubKey)
