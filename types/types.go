@@ -50,6 +50,24 @@ type File struct {
 	ContentType   string
 }
 
+type Chunk struct {
+	ID     string
+	Offset int64
+	Data   []byte
+}
+
+type Job struct {
+	Chunk Chunk
+	Index int
+}
+
+type ChunkResponse struct {
+	ID   string
+	Min  int
+	Max  int
+	Data string
+}
+
 func (b BalanceResponse) ToBigInt() *big.Int {
 	bInt := new(big.Int)
 

@@ -12,7 +12,7 @@ func ExampleNew() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	c, err := New(DefaultNode1, matic)
+	c, err := New(DefaultNode1, matic, false)
 	if err != nil {
 		log.Fatal(err)
 	}

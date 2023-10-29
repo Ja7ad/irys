@@ -15,7 +15,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	c, err := irys.New(irys.DefaultNode1, matic)
+	c, err := irys.New(irys.DefaultNode1, matic, false)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -28,12 +28,12 @@ import (
 func main() {
 	matic, err := currency.NewMatic(
 		"foo",
-		"bar")
+		"https://exampleRPC.com")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	c, err := irys.New(irys.DefaultNode2, matic)
+	c, err := irys.New(irys.DefaultNode2, matic, false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,11 +68,11 @@ import (
 )
 
 func main() {
-	matic, err := currency.NewMatic("foo", "bar")
+	matic, err := currency.NewMatic("foo", "https://exampleRPC.com")
 	if err != nil {
 		log.Fatal(err)
 	}
-	c, err := irys.New(irys.DefaultNode2, matic)
+	c, err := irys.New(irys.DefaultNode2, matic, false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -106,11 +106,11 @@ import (
 )
 
 func main() {
-	matic, err := currency.NewMatic("foo", "bar")
+	matic, err := currency.NewMatic("foo", "https://exampleRPC.com")
 	if err != nil {
 		log.Fatal(err)
 	}
-	c, err := irys.New(irys.DefaultNode1, matic)
+	c, err := irys.New(irys.DefaultNode1, matic, false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -138,11 +138,11 @@ import (
 )
 
 func main() {
-	matic, err := currency.NewMatic("foo", "bar")
+	matic, err := currency.NewMatic("foo", "https://exampleRPC.com")
 	if err != nil {
 		log.Fatal(err)
 	}
-	c, err := irys.New(irys.DefaultNode2, matic)
+	c, err := irys.New(irys.DefaultNode2, matic, false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -161,7 +161,8 @@ func main() {
 - [x] arweave network
 - [x] ethereum network
 - [x] polygon matic network
-- [ ] concurrent and chunk upload
+- [x] concurrent and chunk upload
+- [ ] get chunk upload transaction response
 - [ ] unit test
 - [x] found API
 - [ ] upload folder

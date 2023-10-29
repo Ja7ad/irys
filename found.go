@@ -15,10 +15,12 @@ import (
 func (i *IrysClient) createTx(ctx context.Context, amount *big.Int) (string, error) {
 	switch i.currency.GetType() {
 	case currency.ETHEREUM, currency.MATIC, currency.AVALANCHE, currency.FANTOM, currency.BNB, currency.ARBITRUM:
+		i.debugMsg("[Transaction] create ethereum transaction")
 		hash, err := createEthTx(ctx, i, amount)
 		if err != nil {
 			return "", err
 		}
+		i.debugMsg("[Transaction] transaction with hash %s done", hash)
 		return hash, nil
 	//TODO: arweave not supported currently
 	case currency.ARWEAVE:

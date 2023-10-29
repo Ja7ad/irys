@@ -2,9 +2,11 @@ package irys
 
 import (
 	"context"
+	"fmt"
 	"github.com/Ja7ad/irys/currency"
 	"github.com/Ja7ad/irys/errors"
 	"github.com/Ja7ad/irys/types"
+	"github.com/Ja7ad/irys/utils/logger"
 	"github.com/hashicorp/go-retryablehttp"
 	"io"
 	"math/big"
@@ -19,6 +21,8 @@ type IrysClient struct {
 	network  Node
 	currency currency.Currency
 	contract string
+	logging  logger.Logger
+	debug    bool
 }
 
 type Irys interface {
@@ -29,6 +33,8 @@ type Irys interface {
 	BasicUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error)
 	// Upload file with check balance
 	Upload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error)
+	// ChunkUpload upload file chunk concurrent
+	ChunkUpload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error)
 
 	// Download get file with header details
 	Download(ctx context.Context, hash string) (*types.File, error)
@@ -42,7 +48,7 @@ type Irys interface {
 }
 
 // New create IrysClient object
-func New(node Node, currency currency.Currency, options ...Option) (Irys, error) {
+func New(node Node, currency currency.Currency, debug bool, options ...Option) (Irys, error) {
 	irys := new(IrysClient)
 
 	httpClient := &http.Client{
@@ -56,14 +62,32 @@ func New(node Node, currency currency.Currency, options ...Option) (Irys, error)
 	irys.currency = currency
 	irys.mu = new(sync.Mutex)
 
-	for _, opt := range options {
-		opt(irys)
+	logging, err := logger.New(logger.CONSOLE_HANDLER, logger.Options{
+		Development:  false,
+		Debug:        false,
+		EnableCaller: true,
+		SkipCaller:   4,
+	})
+	if err != nil {
+		return nil, err
 	}
+
+	irys.logging = logging
+	irys.debug = debug
 
 	irys.client.RetryMax = 5
 	irys.client.RetryWaitMin = 1 * time.Second
 	irys.client.RetryWaitMax = 30 * time.Second
 	irys.client.ErrorHandler = retryablehttp.PassthroughErrorHandler
+	irys.client.Logger = logging
+
+	if !debug {
+		irys.client.Logger = nil
+	}
+
+	for _, opt := range options {
+		opt(irys)
+	}
 
 	irys.mu.Lock()
 	contract, err := irys.getTokenContractAddress(node, currency)
@@ -93,8 +117,15 @@ func (i *IrysClient) getTokenContractAddress(node Node, currency currency.Curren
 	}
 
 	if v, ok := resp.Addresses[currency.GetName()]; ok {
+		i.debugMsg("set currency address %s base on currency %s", v, currency.GetName())
 		return v, nil
 	}
 
 	return "", errors.ErrCurrencyIsInvalid
+}
+
+func (i *IrysClient) debugMsg(msg string, args ...any) {
+	if i.debug {
+		i.logging.Debug(fmt.Sprintf(msg, args...))
+	}
 }
