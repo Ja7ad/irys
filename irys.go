@@ -39,14 +39,17 @@ type Irys interface {
 	ChunkUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error)
 
 	// Download get file with header details
-	Download(ctx context.Context, hash string) (*types.File, error)
+	Download(ctx context.Context, txId string) (*types.File, error)
 	// GetMetaData get transaction details
-	GetMetaData(ctx context.Context, hash string) (types.Transaction, error)
+	GetMetaData(ctx context.Context, txId string) (types.Transaction, error)
 
 	// GetBalance return current balance in irys node
 	GetBalance(ctx context.Context) (*big.Int, error)
 	// TopUpBalance top up your balance base on your amount in selected node
 	TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUpConfirmation, error)
+
+	// GetReceipt get receipt information from node
+	GetReceipt(ctx context.Context, txId string) (types.Receipt, error)
 
 	// Close stop irys client request
 	Close()

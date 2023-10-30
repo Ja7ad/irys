@@ -67,6 +67,30 @@ type ChunkResponse struct {
 	Max int
 }
 
+type Receipt struct {
+	Signature      string `json:"signature"`
+	Timestamp      int64  `json:"timestamp"`
+	Version        string `json:"version"`
+	DeadlineHeight int    `json:"deadlineHeight"`
+}
+
+type ReceiptResponse struct {
+	Data struct {
+		Transactions struct {
+			Edges []struct {
+				Node struct {
+					Receipt struct {
+						Signature      string `json:"signature"`
+						Timestamp      int64  `json:"timestamp"`
+						Version        string `json:"version"`
+						DeadlineHeight int    `json:"deadlineHeight"`
+					} `json:"receipt"`
+				} `json:"node"`
+			} `json:"edges"`
+		} `json:"transactions"`
+	} `json:"data"`
+}
+
 func (b BalanceResponse) ToBigInt() *big.Int {
 	bInt := new(big.Int)
 
