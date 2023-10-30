@@ -33,9 +33,13 @@ jobs:
       pull-requests: write
       repository-projects: write
     steps:
-      - uses: actions/checkout@v2
+      - name: Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        uses: mikepenz/action-gh-release@v0.2.0-a03
         with:
-          fetch-depth: 50
-      - uses: fregante/release-with-changelog@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          body: ${{steps.github_release.outputs.changelog}}
