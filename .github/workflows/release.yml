@@ -1,11 +1,6 @@
 name: release
 
 on:
-  workflow_run:
-    workflows: ["test"]
-    branches: [main]
-    types:
-      - completed
   push:
     branches:
       - "main"
@@ -13,8 +8,27 @@ on:
       - "v*.*.*"
 
 jobs:
-  release:
+  test:
     runs-on: ubuntu-20.04
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.21
+
+    - name: Unit tests
+      run: go test ./...
+
+    - name: Check vet
+      run: go vet ./...
+
+  release:
+    needs: test
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
     steps:
       - uses: actions/checkout@v2
         with:
