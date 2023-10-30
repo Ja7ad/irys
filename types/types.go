@@ -91,6 +91,11 @@ type ReceiptResponse struct {
 	} `json:"data"`
 }
 
+type ChunkInfoResponse struct {
+	Chunks []int `json:"chunks"`
+	Total  int   `json:"total"`
+}
+
 func (b BalanceResponse) ToBigInt() *big.Int {
 	bInt := new(big.Int)
 

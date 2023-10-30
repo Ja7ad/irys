@@ -1,16 +1,17 @@
 # irys-go [![Go Reference](https://pkg.go.dev/badge/github.com/Ja7ad/irys.svg)](https://pkg.go.dev/github.com/Ja7ad/irys)
 Go Implementation SDK of Irys network, irys is the only provenance layer. It enables users to scale permanent data and precisely attribute its origin (arweave bundlr).
 
-| Currency           | arweave | ethereum | matic | bnb | avalanche | solana | arbitrum | fantom | near | algorand | aptos |
-|--------------------|---------|----------|-------|-----|-----------|--------|----------|--------|------|----------|-------|
-| Price API          |    x    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
-| Balance API        |    x    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
-| Upload File API    |    -    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
-| Upload Folder API  |    -    |     -    |   -   |  -  |     -     |    -   |     -    |    -   |   -  |     -    |   -   |
-| Widthdraw API      |    -    |     -    |   -   |  -  |     -     |    -   |     -    |    -   |   -  |     -    |   -   |
-| Get Receipt API    |    -    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
+| Currency          | arweave | ethereum | matic | bnb | avalanche | solana | arbitrum | fantom | near | algorand | aptos |
+|-------------------|---------|----------|-------|-----|-----------|--------|----------|--------|------|----------|-------|
+| Price API         |    x    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
+| Balance API       |    x    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
+| Upload File API   |    -    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
+| Chunk File API    |    -    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
+| Upload Folder API |    -    |     -    |   -   |  -  |     -     |    -   |     -    |    -   |   -  |     -    |   -   |
+| Widthdraw API     |    -    |     -    |   -   |  -  |     -     |    -   |     -    |    -   |   -  |     -    |   -   |
+| Get Receipt API   |    -    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
 | Verify Receipt API |    -    |     -    |   -   |  -  |     -     |    -   |     -    |    -   |   -  |     -    |   -   |
-| Found API          |    -    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
+| Found API         |    -    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
 
 ## Install
 

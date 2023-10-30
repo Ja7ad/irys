@@ -35,8 +35,10 @@ type Irys interface {
 	Upload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error)
 	// ChunkUpload upload file chunk concurrent for big files (min size: 500 KB, max size: 95 MB)
 	//
+	// chunkId used for resume upload, chunkId expired after 30 min.
+	//
 	// Note: this feature is experimental, maybe not work.
-	ChunkUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error)
+	ChunkUpload(ctx context.Context, file io.Reader, chunkId string, tags ...types.Tag) (types.Transaction, error)
 
 	// Download get file with header details
 	Download(ctx context.Context, txId string) (*types.File, error)
