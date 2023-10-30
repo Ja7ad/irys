@@ -11,16 +11,19 @@ jobs:
   test:
     runs-on: ubuntu-20.04
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.21
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Unit tests
-      run: go test ./...
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.21
 
-    - name: Check vet
-      run: go vet ./...
+      - name: Unit tests
+        run: go test ./...
+
+      - name: Check vet
+        run: go vet ./...
 
   release:
     needs: test
