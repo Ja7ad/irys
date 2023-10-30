@@ -7,3 +7,5 @@ const (
 	DefaultNode2  Node = "https://node2.irys.xyz"  // DefaultNode2 is node 2 irys
 	DefaultDevNet Node = "https://devnet.irys.xyz" // DefaultDevNet is a testnet for test irys
 )
+
+const _defaultGateway = "https://gateway.irys.xyz"

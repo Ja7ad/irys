@@ -150,7 +150,7 @@ func (c *Client) TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUp
 }
 
 func (c *Client) Download(ctx context.Context, hash string) (*types.File, error) {
-	url := fmt.Sprintf(_downloadPath, c.network, hash)
+	url := fmt.Sprintf(_downloadPath, _defaultGateway, hash)
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -180,7 +180,7 @@ func (c *Client) Download(ctx context.Context, hash string) (*types.File, error)
 }
 
 func (c *Client) GetMetaData(ctx context.Context, hash string) (types.Transaction, error) {
-	url := fmt.Sprintf(_txPath, c.network, hash)
+	url := fmt.Sprintf(_txPath, _defaultGateway, hash)
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
