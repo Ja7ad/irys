@@ -105,7 +105,7 @@ func (self *EthereumSigner) GetOwner() ([]byte, error) {
 }
 
 func (self *EthereumSigner) GetType() SignatureType {
-	return SignatureTypeEthereum
+	return Ethereum
 }
 
 func (self *EthereumSigner) GetSignatureLength() int {

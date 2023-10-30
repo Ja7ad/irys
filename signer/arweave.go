@@ -78,7 +78,7 @@ func (self *ArweaveSigner) GetOwner() ([]byte, error) {
 }
 
 func (self *ArweaveSigner) GetType() SignatureType {
-	return SignatureTypeArweave
+	return Arweave
 }
 
 func (self *ArweaveSigner) GetSignatureLength() int {
