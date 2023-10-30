@@ -15,11 +15,11 @@ type Signer interface {
 // Private key is not initialized.
 func GetSigner(SignatureType SignatureType, owner []byte) (signer Signer, err error) {
 	switch SignatureType {
-	case SignatureTypeArweave:
+	case Arweave:
 		signer = &ArweaveSigner{
 			Owner: owner,
 		}
-	case SignatureTypeEthereum:
+	case Ethereum:
 		signer = &EthereumSigner{
 			Owner: owner,
 		}

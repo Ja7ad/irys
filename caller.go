@@ -13,6 +13,7 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -23,6 +24,7 @@ const (
 	_sendTxToBalance = "%s/account/balance/matic"
 	_getBalance      = "%s/account/balance/matic?address=%s"
 	_chunkUpload     = "%s/chunks/%s/%v/%v"
+	_graphql         = "%s/graphql"
 )
 
 const (
@@ -149,8 +151,8 @@ func (c *Client) TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUp
 	}
 }
 
-func (c *Client) Download(ctx context.Context, hash string) (*types.File, error) {
-	url := fmt.Sprintf(_downloadPath, _defaultGateway, hash)
+func (c *Client) Download(ctx context.Context, txId string) (*types.File, error) {
+	url := fmt.Sprintf(_downloadPath, _defaultGateway, txId)
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -179,8 +181,8 @@ func (c *Client) Download(ctx context.Context, hash string) (*types.File, error)
 	}
 }
 
-func (c *Client) GetMetaData(ctx context.Context, hash string) (types.Transaction, error) {
-	url := fmt.Sprintf(_txPath, _defaultGateway, hash)
+func (c *Client) GetMetaData(ctx context.Context, txId string) (types.Transaction, error) {
+	url := fmt.Sprintf(_txPath, _defaultGateway, txId)
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -233,6 +235,50 @@ func (c *Client) BasicUpload(ctx context.Context, file io.Reader, tags ...types.
 	}
 
 	return c.upload(ctx, url, file, tags...)
+}
+
+func (c *Client) GetReceipt(ctx context.Context, txId string) (types.Receipt, error) {
+	url := fmt.Sprintf(_graphql, c.network)
+
+	body := strings.NewReader(fmt.Sprintf("{\"query\":\"query {\\n      "+
+		"transactions(ids: [\\\"%s\\\"]) {\\n        edges {\\n         "+
+		" node {\\n            receipt {\\n              signature\\n              "+
+		"timestamp\\n              version\\n              deadlineHeight\\n           "+
+		" }\\n          }\\n        }\\n      }\\n    }\",\"variables\":{}}", txId))
+
+	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodPost, url, body)
+	if err != nil {
+		return types.Receipt{}, err
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return types.Receipt{}, err
+	}
+
+	defer resp.Body.Close()
+
+	select {
+	case <-ctx.Done():
+		return types.Receipt{}, ctx.Err()
+	default:
+		if err := statusCheck(resp); err != nil {
+			return types.Receipt{}, err
+		}
+
+		response, err := decodeBody[types.ReceiptResponse](resp.Body)
+		if err != nil {
+			return types.Receipt{}, err
+		}
+
+		if response.Data.Transactions.Edges != nil {
+			return response.Data.Transactions.Edges[0].Node.Receipt, nil
+		}
+
+		return types.Receipt{}, nil
+	}
 }
 
 func (c *Client) Upload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
