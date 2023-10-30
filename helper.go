@@ -1,6 +1,7 @@
 package irys
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"github.com/Ja7ad/irys/errors"
@@ -47,7 +48,7 @@ func statusCheck(resp *http.Response) error {
 	return nil
 }
 
-func signFile(file io.Reader, signer signer.Signer, tags ...types.Tag) ([]byte, error) {
+func signFile(file io.Reader, signer signer.Signer, withAnchor bool, tags ...types.Tag) ([]byte, error) {
 	b, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
@@ -59,6 +60,17 @@ func signFile(file io.Reader, signer signer.Signer, tags ...types.Tag) ([]byte, 
 		Data: types.Base64String(b),
 		Tags: tags,
 	}
+
+	if withAnchor {
+		anchor := make([]byte, 32)
+		_, err := rand.Read(anchor)
+		if err != nil {
+			return nil, err
+		}
+		dataItem.Anchor = anchor
+	}
+
+	dataItem.Anchor.Base64()
 
 	if err := dataItem.Sign(signer); err != nil {
 		return nil, err
