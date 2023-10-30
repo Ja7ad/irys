@@ -1,0 +1,33 @@
+name: release
+
+on:
+  workflow_run:
+    workflows: ["test"]
+    branches: [main]
+    types:
+      - completed
+  push:
+    branches:
+      - "main"
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      - name: Release new changes
+        uses: fregante/release-with-changelog@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          exclude: '^Meta'
+          commit-template: '- {title} ← {hash}'
+          template: |
+            ### Changelog
+            
+            {commits}
+            
+            {range}
