@@ -27,13 +27,6 @@ const (
 	_graphql         = "%s/graphql"
 )
 
-const (
-	_defaultNumWorkers = 5 // define the number of workers in the pool
-	_maxRetries        = 3 // define the maximum number of retries for a timeout error
-	_defaultMinChunk   = 500000
-	_defaultMaxChunk   = 95000000
-)
-
 func (c *Client) GetPrice(ctx context.Context, fileSize int) (*big.Int, error) {
 	url := fmt.Sprintf(_pricePath, c.network, c.currency.GetName(), fileSize)
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -310,7 +303,7 @@ func (c *Client) Upload(ctx context.Context, file io.Reader, price *big.Int, tag
 }
 
 func (c *Client) upload(ctx context.Context, url string, file io.Reader, tags ...types.Tag) (types.Transaction, error) {
-	b, err := signFile(file, c.currency.GetSinger(), tags...)
+	b, err := signFile(file, c.currency.GetSinger(), false, tags...)
 	if err != nil {
 		return types.Transaction{}, err
 	}

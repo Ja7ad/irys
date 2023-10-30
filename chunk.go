@@ -3,12 +3,10 @@ package irys
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	errs "github.com/Ja7ad/irys/errors"
 	"github.com/Ja7ad/irys/types"
-	"github.com/avast/retry-go"
 	"github.com/hashicorp/go-retryablehttp"
 	"io"
 	"net"
@@ -17,35 +15,53 @@ import (
 	"sync"
 )
 
-func (c *Client) ChunkUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error) {
+const (
+	_maxRetries      = 3 // define the maximum number of retries for a timeout error
+	_defaultMinChunk = 500000
+	_defaultMaxChunk = 95000000
+)
+
+func (c *Client) ChunkUpload(ctx context.Context, file io.Reader, chunkId string, tags ...types.Tag) (types.Transaction, error) {
 	var (
 		wg   sync.WaitGroup
 		once sync.Once
 	)
 	jobsCh := make(chan types.Job)
 	errCh := make(chan error)
-	workerNum := _defaultNumWorkers
+	workerNum := 1
+	chunkSize := 0
+	chunkUUID := chunkId
 
-	b, err := signFile(file, c.currency.GetSinger(), tags...)
+	b, err := signFile(file, c.currency.GetSinger(), true, tags...)
 	if err != nil {
 		return types.Transaction{}, err
 	}
 
-	chunkSize := len(b) / workerNum
+	fileSize := len(b)
+
+	if fileSize < _defaultMinChunk {
+		return types.Transaction{}, errs.ErrNotAllowedChunkSize
+	}
 
 	switch {
-	case len(b) < _defaultMinChunk || chunkSize > _defaultMaxChunk:
-		return types.Transaction{}, errs.ErrNotAllowedChunkSize
-	case len(b) > _defaultMinChunk && len(b) < 1000000:
-		chunkSize = len(b)
-		workerNum = 1
-	case chunkSize < _defaultMinChunk:
-		return types.Transaction{}, errs.ErrNotAllowedChunkSize
+	case fileSize >= 1000000 && fileSize < 10000000:
+		workerNum = 2
+	case fileSize >= 10000000 && fileSize < _defaultMaxChunk:
+		workerNum = 3
+	case fileSize >= _defaultMaxChunk:
+		workerNum = 5
 	}
 
-	chunkInfo, err := generateChunkUUID(ctx, c)
-	if err != nil {
-		return types.Transaction{}, err
+	chunkSize = fileSize / workerNum
+
+	if len(chunkUUID) == 0 {
+		chunkInfo, err := generateChunkID(ctx, c)
+		if err != nil {
+			return types.Transaction{}, err
+		}
+		chunkUUID = chunkInfo.ID
+	} else {
+		// TODO: implement exists chunkId for resume
 	}
 
 	for w := 0; w < workerNum; w++ {
@@ -59,14 +75,14 @@ func (c *Client) ChunkUpload(ctx context.Context, file io.Reader, tags ...types.
 
 	index := 0
 
-	for start := 0; start < len(b); start += chunkSize {
+	for start := 0; start < fileSize; start += chunkSize {
 		end := start + chunkSize
-		if end > len(b) {
-			end = len(b)
+		if end > fileSize {
+			end = fileSize
 		}
 
 		chunkData := b[start:end]
-		chunk := types.Chunk{ID: chunkInfo.ID, Offset: int64(index * chunkSize), Data: chunkData}
+		chunk := types.Chunk{ID: chunkUUID, Offset: int64(index * chunkSize), Data: chunkData}
 		job := types.Job{Chunk: chunk, Index: index}
 		jobsCh <- job
 		index++
@@ -92,15 +108,11 @@ func (c *Client) ChunkUpload(ctx context.Context, file io.Reader, tags ...types.
 	case <-ctx.Done():
 		return types.Transaction{}, ctx.Err()
 	default:
-		if err := finishChunk(ctx, c, chunkInfo.ID); err != nil {
-			return types.Transaction{}, err
-		}
-
-		return getChunkTx(ctx, c, chunkInfo.ID)
+		return finishChunk(ctx, c, chunkUUID)
 	}
 }
 
-func generateChunkUUID(ctx context.Context, c *Client) (types.ChunkResponse, error) {
+func generateChunkID(ctx context.Context, c *Client) (types.ChunkResponse, error) {
 	url := fmt.Sprintf(_chunkUpload, c.network, c.currency.GetName(), -1, -1)
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -121,6 +133,10 @@ func generateChunkUUID(ctx context.Context, c *Client) (types.ChunkResponse, err
 	}
 
 	return decodeBody[types.ChunkResponse](resp.Body)
+}
+
+func getChunkID(ctx context.Context, c *Client, chunkId string) (types.ChunkInfoResponse, error) {
+	panic("implement me")
 }
 
 func worker(ctx context.Context, c *Client, id int, wg *sync.WaitGroup, jobs <-chan types.Job) error {
@@ -154,12 +170,8 @@ func worker(ctx context.Context, c *Client, id int, wg *sync.WaitGroup, jobs <-c
 
 func createChunkRequest(ctx context.Context, c *Client, chunk types.Chunk, index, workerID int) error {
 	url := fmt.Sprintf(_chunkUpload, c.network, c.currency.GetName(), chunk.ID, chunk.Offset)
-	data, err := json.Marshal(chunk)
-	if err != nil {
-		return err
-	}
 
-	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(data))
+	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(chunk.Data))
 	if err != nil {
 		return err
 	}
@@ -183,12 +195,12 @@ func createChunkRequest(ctx context.Context, c *Client, chunk types.Chunk, index
 	}
 }
 
-func finishChunk(ctx context.Context, c *Client, uuid string) error {
+func finishChunk(ctx context.Context, c *Client, uuid string) (types.Transaction, error) {
 	url := fmt.Sprintf(_chunkUpload, c.network, c.currency.GetName(), uuid, -1)
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 	if err != nil {
-		return err
+		return types.Transaction{}, err
 	}
 
 	req.Header.Set("Content-Type", "application/octet-stream")
@@ -196,53 +208,19 @@ func finishChunk(ctx context.Context, c *Client, uuid string) error {
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return err
+		return types.Transaction{}, err
 	}
 
 	defer resp.Body.Close()
 
 	select {
 	case <-ctx.Done():
-		return ctx.Err()
+		return types.Transaction{}, ctx.Err()
 	default:
-		c.debugMsg("[ChunkUpload] finalizing chunk upload")
-		return statusCheck(resp)
-	}
-}
-
-func getChunkTx(ctx context.Context, c *Client, uuid string) (types.Transaction, error) {
-	url := fmt.Sprintf(_chunkUpload, c.network, c.currency.GetName(), uuid, 0)
-
-	var tx types.Transaction
-	err := retry.Do(func() error {
-		req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-		if err != nil {
-			return err
-		}
-
-		req.Header.Set("x-chunking-version", "2")
-
-		resp, err := c.client.Do(req)
-		if err != nil {
-			return err
-		}
-
 		if err := statusCheck(resp); err != nil {
-			return err
+			return types.Transaction{}, err
 		}
 
-		transaction, err := decodeBody[types.Transaction](resp.Body)
-		if err != nil {
-			return err
-		}
-		resp.Body.Close()
-		tx = transaction
-		return nil
-	}, retry.Attempts(3))
-
-	if err != nil {
-		return types.Transaction{}, err
+		return decodeBody[types.Transaction](resp.Body)
 	}
-
-	return tx, nil
 }
