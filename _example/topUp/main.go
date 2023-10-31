@@ -7,6 +7,7 @@ import (
 	"github.com/Ja7ad/irys/configs"
 	"github.com/Ja7ad/irys/currency"
 	"log"
+	"math/big"
 )
 
 func main() {
@@ -15,15 +16,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	c, err := irys.New(irys.DefaultNode2, matic, false)
+	c, err := irys.New(irys.DefaultNode1, matic, true)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	receipt, err := c.GetReceipt(context.Background(), "XjzDyneweD_Dmhuaipbi7HyXXvsY6IkMcIsumlB0G2M")
+	ctx := context.Background()
+
+	err = c.TopUpBalance(ctx, big.NewInt(321000000000023))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(receipt)
+	balance, err := c.GetBalance(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(balance)
 }

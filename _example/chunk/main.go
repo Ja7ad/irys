@@ -4,15 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/Ja7ad/irys"
+	"github.com/Ja7ad/irys/configs"
 	"github.com/Ja7ad/irys/currency"
 	"log"
 	"os"
 )
 
 func main() {
-	matic, err := currency.NewMatic(
-		"foobar",
-		"https://exampleRPC.com")
+	matic, err := currency.NewMatic(configs.ExamplePrivateKey, configs.ExampleRpc)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -22,7 +21,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	file, err := os.Open("/home/javad/Downloads/Shotgun_Types.jpeg")
+	file, err := os.Open("absolute_path_to_file")
 	if err != nil {
 		log.Fatal(err)
 	}

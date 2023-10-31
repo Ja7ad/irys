@@ -30,9 +30,9 @@ type Irys interface {
 	GetPrice(ctx context.Context, fileSize int) (*big.Int, error)
 
 	// BasicUpload file with calculate price and topUp balance base on price (this is slower for upload)
-	BasicUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error)
+	BasicUpload(ctx context.Context, file []byte, tags ...types.Tag) (types.Transaction, error)
 	// Upload file with check balance
-	Upload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error)
+	Upload(ctx context.Context, file []byte, tags ...types.Tag) (types.Transaction, error)
 	// ChunkUpload upload file chunk concurrent for big files (min size: 500 KB, max size: 95 MB)
 	//
 	// chunkId used for resume upload, chunkId expired after 30 min.
@@ -48,7 +48,7 @@ type Irys interface {
 	// GetBalance return current balance in irys node
 	GetBalance(ctx context.Context) (*big.Int, error)
 	// TopUpBalance top up your balance base on your amount in selected node
-	TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUpConfirmation, error)
+	TopUpBalance(ctx context.Context, amount *big.Int) error
 
 	// GetReceipt get receipt information from node
 	GetReceipt(ctx context.Context, txId string) (types.Receipt, error)

@@ -5,12 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	errs "github.com/Ja7ad/irys/errors"
 	"github.com/Ja7ad/irys/types"
-	retry "github.com/avast/retry-go"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/hashicorp/go-retryablehttp"
-	"io"
 	"math/big"
 	"net/http"
 	"strings"
@@ -81,66 +78,40 @@ func (c *Client) GetBalance(ctx context.Context) (*big.Int, error) {
 	}
 }
 
-func (c *Client) TopUpBalance(ctx context.Context, amount *big.Int) (types.TopUpConfirmation, error) {
+func (c *Client) TopUpBalance(ctx context.Context, amount *big.Int) error {
 	urlConfirm := fmt.Sprintf(_sendTxToBalance, c.network)
 
 	hash, err := c.createTx(ctx, amount)
 	if err != nil {
-		return types.TopUpConfirmation{}, err
+		return err
 	}
 
 	b, err := json.Marshal(&types.TxToBalanceRequest{
 		TxId: hash,
 	})
 	if err != nil {
-		return types.TopUpConfirmation{}, err
+		return err
 	}
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodPost, urlConfirm, bytes.NewBuffer(b))
 	if err != nil {
-		return types.TopUpConfirmation{}, err
+		return err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return types.TopUpConfirmation{}, err
+		return err
 	}
 
 	defer resp.Body.Close()
 
 	select {
 	case <-ctx.Done():
-		return types.TopUpConfirmation{}, ctx.Err()
+		return ctx.Err()
 	default:
-		if err := statusCheck(resp); err != nil {
-			return types.TopUpConfirmation{}, err
-		}
-
-		confirm, err := decodeBody[types.TopUpConfirmationResponse](resp.Body)
-		if err != nil {
-			return types.TopUpConfirmation{}, err
-		}
-
-		if confirm.Confirmed {
-			var balance *big.Int
-			err = retry.Do(func() error {
-				balance, err = c.GetBalance(ctx)
-				return err
-			}, retry.Attempts(3))
-
-			if err != nil {
-				return types.TopUpConfirmation{}, err
-			}
-			return types.TopUpConfirmation{
-				Confirmed: true,
-				Hash:      hash,
-				Balance:   balance,
-			}, nil
-		}
-
-		return types.TopUpConfirmation{}, nil
+		return statusCheck(resp)
 	}
 }
 
@@ -200,36 +171,6 @@ func (c *Client) GetMetaData(ctx context.Context, txId string) (types.Transactio
 	}
 }
 
-func (c *Client) BasicUpload(ctx context.Context, file io.Reader, tags ...types.Tag) (types.Transaction, error) {
-	url := fmt.Sprintf(_uploadPath, c.network, c.currency.GetName())
-	b, err := io.ReadAll(file)
-	if err != nil {
-		return types.Transaction{}, err
-	}
-
-	price, err := c.GetPrice(ctx, len(b))
-	if err != nil {
-		return types.Transaction{}, err
-	}
-	c.debugMsg("[BasicUpload] get price %s", price.String())
-
-	balance, err := c.GetBalance(ctx)
-	if err != nil {
-		return types.Transaction{}, err
-	}
-	c.debugMsg("[BasicUpload] get balance %s", balance.String())
-
-	if balance.Cmp(price) < 0 {
-		_, err := c.TopUpBalance(ctx, price)
-		if err != nil {
-			return types.Transaction{}, err
-		}
-		c.debugMsg("[BasicUpload] topUp balance")
-	}
-
-	return c.upload(ctx, url, b, tags...)
-}
-
 func (c *Client) GetReceipt(ctx context.Context, txId string) (types.Receipt, error) {
 	url := fmt.Sprintf(_graphql, c.network)
 
@@ -274,36 +215,39 @@ func (c *Client) GetReceipt(ctx context.Context, txId string) (types.Receipt, er
 	}
 }
 
-func (c *Client) Upload(ctx context.Context, file io.Reader, price *big.Int, tags ...types.Tag) (types.Transaction, error) {
+func (c *Client) BasicUpload(ctx context.Context, file []byte, tags ...types.Tag) (types.Transaction, error) {
 	url := fmt.Sprintf(_uploadPath, c.network, c.currency.GetName())
-	b, err := io.ReadAll(file)
+
+	price, err := c.GetPrice(ctx, len(file))
 	if err != nil {
 		return types.Transaction{}, err
 	}
-
-	if price == nil {
-		price, err = c.GetPrice(ctx, len(b))
-		if err != nil {
-			return types.Transaction{}, err
-		}
-		c.debugMsg("[Upload] get price %s", price.String())
-	}
+	c.debugMsg("[BasicUpload] get price %s", price.String())
 
 	balance, err := c.GetBalance(ctx)
 	if err != nil {
 		return types.Transaction{}, err
 	}
-	c.debugMsg("[Upload] get balance %s", balance.String())
+	c.debugMsg("[BasicUpload] get balance %s", balance.String())
 
 	if balance.Cmp(price) < 0 {
-		return types.Transaction{}, errs.ErrBalanceIsLow
+		err := c.TopUpBalance(ctx, price)
+		if err != nil {
+			return types.Transaction{}, err
+		}
+		c.debugMsg("[BasicUpload] topUp balance")
 	}
 
-	return c.upload(ctx, url, b, tags...)
+	return c.upload(ctx, url, file, tags...)
+}
+
+func (c *Client) Upload(ctx context.Context, file []byte, tags ...types.Tag) (types.Transaction, error) {
+	url := fmt.Sprintf(_uploadPath, c.network, c.currency.GetName())
+	return c.upload(ctx, url, file, tags...)
 }
 
 func (c *Client) upload(ctx context.Context, url string, file []byte, tags ...types.Tag) (types.Transaction, error) {
-	b, err := signFile(file, c.currency.GetSinger(), true, tags...)
+	b, err := signFile(file, c.currency.GetSinger(), false, tags...)
 	if err != nil {
 		return types.Transaction{}, err
 	}
