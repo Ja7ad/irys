@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/configs"
-	"github.com/Ja7ad/irys/currency"
 	"io"
 	"log"
 	"os"
 	"time"
+
+	"github.com/Ja7ad/irys"
+	"github.com/Ja7ad/irys/configs"
+	"github.com/Ja7ad/irys/currency"
 )
 
 func main() {

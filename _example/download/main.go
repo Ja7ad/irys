@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
+
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/configs"
 	"github.com/Ja7ad/irys/currency"
-	"io"
-	"log"
 )
 
 func main() {

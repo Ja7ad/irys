@@ -2,6 +2,7 @@ package currency
 
 import (
 	"crypto/ecdsa"
+
 	"github.com/Ja7ad/irys/signer"
 	"github.com/ethereum/go-ethereum/ethclient"
 )

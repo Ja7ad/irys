@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/configs"
 	"github.com/Ja7ad/irys/currency"
-	"log"
-	"os"
 )
 
 func main() {
@@ -32,5 +33,4 @@ func main() {
 	}
 
 	fmt.Println(tx)
-
 }

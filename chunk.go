@@ -5,14 +5,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	errs "github.com/Ja7ad/irys/errors"
-	"github.com/Ja7ad/irys/types"
-	"github.com/hashicorp/go-retryablehttp"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"sync"
+
+	errs "github.com/Ja7ad/irys/errors"
+	"github.com/Ja7ad/irys/types"
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 const (

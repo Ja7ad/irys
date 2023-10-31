@@ -3,16 +3,17 @@ package irys
 import (
 	"context"
 	"fmt"
-	"github.com/Ja7ad/irys/currency"
-	"github.com/Ja7ad/irys/errors"
-	"github.com/Ja7ad/irys/types"
-	"github.com/Ja7ad/irys/utils/logger"
-	"github.com/hashicorp/go-retryablehttp"
 	"io"
 	"math/big"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/Ja7ad/irys/currency"
+	"github.com/Ja7ad/irys/errors"
+	"github.com/Ja7ad/irys/types"
+	"github.com/Ja7ad/irys/utils/logger"
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 type Client struct {

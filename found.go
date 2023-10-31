@@ -2,6 +2,8 @@ package irys
 
 import (
 	"context"
+	"math/big"
+
 	"github.com/Ja7ad/irys/currency"
 	"github.com/Ja7ad/irys/errors"
 	"github.com/ethereum/go-ethereum"
@@ -9,7 +11,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/crypto/sha3"
-	"math/big"
 )
 
 func (c *Client) createTx(ctx context.Context, amount *big.Int) (string, error) {
@@ -22,7 +23,7 @@ func (c *Client) createTx(ctx context.Context, amount *big.Int) (string, error) 
 		}
 		c.debugMsg("[Transaction] transaction with hash %s done", hash)
 		return hash, nil
-	//TODO: arweave not supported currently
+	// TODO: arweave not supported currently
 	case currency.ARWEAVE:
 
 	}
@@ -60,6 +61,9 @@ func createEthTx(ctx context.Context, i *Client, amount *big.Int) (string, error
 		To:   &toAddress,
 		Data: data,
 	})
+	if err != nil {
+		return "", err
+	}
 
 	nonce, err := client.PendingNonceAt(ctx, fromAddress)
 	if err != nil {

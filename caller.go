@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Ja7ad/irys/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/hashicorp/go-retryablehttp"
 	"math/big"
 	"net/http"
 	"strings"
+
+	"github.com/Ja7ad/irys/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 const (

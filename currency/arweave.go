@@ -1,9 +1,10 @@
 package currency
 
 import (
+	"os"
+
 	"github.com/Ja7ad/irys/errors"
 	"github.com/Ja7ad/irys/signer"
-	"os"
 )
 
 const (
