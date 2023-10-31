@@ -3,15 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/currency"
 	"log"
+
+	"github.com/Ja7ad/irys"
+	"github.com/Ja7ad/irys/configs"
+	"github.com/Ja7ad/irys/currency"
 )
 
 func main() {
-	matic, err := currency.NewMatic(
-		"foobar",
-		"https://exampleRPC.com")
+	matic, err := currency.NewMatic(configs.ExamplePrivateKey, configs.ExampleRpc)
 	if err != nil {
 		log.Fatal(err)
 	}

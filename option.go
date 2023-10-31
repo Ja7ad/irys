@@ -1,9 +1,10 @@
 package irys
 
 import (
-	"github.com/Ja7ad/irys/utils/logger"
 	"net/http"
 	"time"
+
+	"github.com/Ja7ad/irys/utils/logger"
 )
 
 type Option func(irys *Client)

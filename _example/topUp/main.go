@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
+	"math/big"
 
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/configs"
@@ -17,21 +17,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	c, err := irys.New(irys.DefaultNode2, matic, false)
+	c, err := irys.New(irys.DefaultNode1, matic, true)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	file, err := c.Download(context.Background(), "XjzDyneweD_Dmhuaipbi7HyXXvsY6IkMcIsumlB0G2M")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Data.Close()
+	ctx := context.Background()
 
-	b, err := io.ReadAll(file.Data)
+	err = c.TopUpBalance(ctx, big.NewInt(321000000000023))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(len(b), file.Header, file.ContentLength, file.ContentType)
+	balance, err := c.GetBalance(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(balance)
 }

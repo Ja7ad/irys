@@ -1,10 +1,10 @@
 package signer
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-
-	"testing"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -20,7 +20,6 @@ type EthereumSignerTestSuite struct {
 }
 
 func (s *EthereumSignerTestSuite) SetupSuite() {
-
 }
 
 func (s *EthereumSignerTestSuite) TearDownSuite() {

@@ -5,9 +5,10 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
+	"io"
+
 	"github.com/Ja7ad/irys/errors"
 	"github.com/Ja7ad/irys/signer"
-	"io"
 )
 
 type BundleItem struct {

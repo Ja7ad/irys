@@ -3,8 +3,9 @@ package irys
 import (
 	"context"
 	"fmt"
-	"github.com/Ja7ad/irys/currency"
 	"log"
+
+	"github.com/Ja7ad/irys/currency"
 )
 
 func ExampleNew() {

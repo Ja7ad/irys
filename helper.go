@@ -4,11 +4,12 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+
 	"github.com/Ja7ad/irys/errors"
 	"github.com/Ja7ad/irys/signer"
 	"github.com/Ja7ad/irys/types"
-	"io"
-	"net/http"
 )
 
 func decodeBody[T any](body io.Reader) (T, error) {
