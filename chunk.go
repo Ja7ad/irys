@@ -32,7 +32,12 @@ func (c *Client) ChunkUpload(ctx context.Context, file io.Reader, chunkId string
 	chunkSize := 0
 	chunkUUID := chunkId
 
-	b, err := signFile(file, c.currency.GetSinger(), true, tags...)
+	payload, err := io.ReadAll(file)
+	if err != nil {
+		return types.Transaction{}, err
+	}
+
+	b, err := signFile(payload, c.currency.GetSinger(), true, tags...)
 	if err != nil {
 		return types.Transaction{}, err
 	}

@@ -227,7 +227,7 @@ func (c *Client) BasicUpload(ctx context.Context, file io.Reader, tags ...types.
 		c.debugMsg("[BasicUpload] topUp balance")
 	}
 
-	return c.upload(ctx, url, file, tags...)
+	return c.upload(ctx, url, b, tags...)
 }
 
 func (c *Client) GetReceipt(ctx context.Context, txId string) (types.Receipt, error) {
@@ -299,11 +299,11 @@ func (c *Client) Upload(ctx context.Context, file io.Reader, price *big.Int, tag
 		return types.Transaction{}, errs.ErrBalanceIsLow
 	}
 
-	return c.upload(ctx, url, file, tags...)
+	return c.upload(ctx, url, b, tags...)
 }
 
-func (c *Client) upload(ctx context.Context, url string, file io.Reader, tags ...types.Tag) (types.Transaction, error) {
-	b, err := signFile(file, c.currency.GetSinger(), false, tags...)
+func (c *Client) upload(ctx context.Context, url string, file []byte, tags ...types.Tag) (types.Transaction, error) {
+	b, err := signFile(file, c.currency.GetSinger(), true, tags...)
 	if err != nil {
 		return types.Transaction{}, err
 	}

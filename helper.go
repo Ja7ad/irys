@@ -48,16 +48,11 @@ func statusCheck(resp *http.Response) error {
 	return nil
 }
 
-func signFile(file io.Reader, signer signer.Signer, withAnchor bool, tags ...types.Tag) ([]byte, error) {
-	b, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-
-	tags = addContentType(http.DetectContentType(b), tags...)
+func signFile(file []byte, signer signer.Signer, withAnchor bool, tags ...types.Tag) ([]byte, error) {
+	tags = addContentType(http.DetectContentType(file), tags...)
 
 	dataItem := types.BundleItem{
-		Data: types.Base64String(b),
+		Data: types.Base64String(file),
 		Tags: tags,
 	}
 
