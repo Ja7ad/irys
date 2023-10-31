@@ -1,17 +1,17 @@
 # irys-go [![Go Reference](https://pkg.go.dev/badge/github.com/Ja7ad/irys.svg)](https://pkg.go.dev/github.com/Ja7ad/irys)
 Go Implementation SDK of Irys network, irys is the only provenance layer. It enables users to scale permanent data and precisely attribute its origin (arweave bundlr).
 
-| Currency          | arweave | ethereum | matic | bnb | avalanche | solana | arbitrum | fantom | near | algorand | aptos |
-|-------------------|---------|----------|-------|-----|-----------|--------|----------|--------|------|----------|-------|
-| Price API         |    x    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
-| Balance API       |    x    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
-| Upload File API   |    -    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
-| Chunk File API    |    -    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
-| Upload Folder API |    -    |     -    |   -   |  -  |     -     |    -   |     -    |    -   |   -  |     -    |   -   |
-| Widthdraw API     |    -    |     -    |   -   |  -  |     -     |    -   |     -    |    -   |   -  |     -    |   -   |
-| Get Receipt API   |    -    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
-| Verify Receipt API |    -    |     -    |   -   |  -  |     -     |    -   |     -    |    -   |   -  |     -    |   -   |
-| Found API         |    -    |     x    |   x   |  x  |     x     |    -   |     x    |    x   |   -  |     -    |   -   |
+| Currency           | arweave | ethereum | matic | bnb | avalanche | solana | arbitrum | fantom | near | algorand | aptos |
+|--------------------|---------|----------|-------|-----|-----------|--------|----------|--------|------|----------|-------|
+| Price API          | x       | x        | x     | x   | x         | -      | x        | x      | -    | -        | -     |
+| Balance API        | x       | x        | x     | x   | x         | -      | x        | x      | -    | -        | -     |
+| Upload File API    | -       | x        | x     | x   | x         | -      | x        | x      | -    | -        | -     |
+| Chunk File API     | -       | x        | x     | x   | x         | -      | x        | x      | -    | -        | -     |
+| Upload Folder API  | -       | -        | -     | -   | -         | -      | -        | -      | -    | -        | -     |
+| Widthdraw API      | -       | -        | -     | -   | -         | -      | -        | -      | -    | -        | -     |
+| Get Receipt API    | -       | x        | x     | x   | x         | -      | x        | x      | -    | -        | -     |
+| Verify Receipt API | -       | -        | -     | -   | -         | -      | -        | -      | -    | -        | -     |
+| Found API          | -       | x        | x     | x   | x         | -      | x        | x      | -    | -        | -     |
 
 ## Install
 
@@ -29,40 +29,57 @@ go get -u  github.com/Ja7ad/irys
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
-	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/currency"
+	"io"
 	"log"
 	"os"
+	"time"
+
+	"github.com/Ja7ad/irys"
+	"github.com/Ja7ad/irys/configs"
+	"github.com/Ja7ad/irys/currency"
 )
 
 func main() {
-	matic, err := currency.NewMatic(
-		"foo",
-		"https://exampleRPC.com")
+	matic, err := currency.NewMatic(configs.ExamplePrivateKey, configs.ExampleRpc)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	c, err := irys.New(irys.DefaultNode2, matic, false)
+	c, err := irys.New(irys.DefaultNode1, matic, false)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	file, err := os.Open("image.jpeg")
+	file, err := os.Open("absolute_path_to_file")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tx, err := c.BasicUpload(context.Background(), file)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	stat, err := file.Stat()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	bs := make([]byte, stat.Size())
+	_, err = bufio.NewReader(file).Read(bs)
+	if err != nil && err != io.EOF {
+		log.Fatal(err)
+	}
+
+	tx, err := c.BasicUpload(ctx, bs)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Println(tx)
-
 }
+
 ```
 
 ### Download
@@ -73,17 +90,20 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/currency"
 	"io"
 	"log"
+
+	"github.com/Ja7ad/irys"
+	"github.com/Ja7ad/irys/configs"
+	"github.com/Ja7ad/irys/currency"
 )
 
 func main() {
-	matic, err := currency.NewMatic("foo", "https://exampleRPC.com")
+	matic, err := currency.NewMatic(configs.ExamplePrivateKey, configs.ExampleRpc)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	c, err := irys.New(irys.DefaultNode2, matic, false)
 	if err != nil {
 		log.Fatal(err)
@@ -100,7 +120,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(string(b), file.Header, file.ContentLength, file.ContentType)
+	fmt.Println(len(b), file.Header, file.ContentLength, file.ContentType)
 }
 ```
 
@@ -112,13 +132,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/currency"
 	"log"
+
+	"github.com/Ja7ad/irys"
+	"github.com/Ja7ad/irys/configs"
+	"github.com/Ja7ad/irys/currency"
 )
 
 func main() {
-	matic, err := currency.NewMatic("foo", "https://exampleRPC.com")
+	matic, err := currency.NewMatic(configs.ExamplePrivateKey, configs.ExampleRpc)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -144,16 +166,19 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/currency"
 	"log"
+
+	"github.com/Ja7ad/irys"
+	"github.com/Ja7ad/irys/configs"
+	"github.com/Ja7ad/irys/currency"
 )
 
 func main() {
-	matic, err := currency.NewMatic("foo", "https://exampleRPC.com")
+	matic, err := currency.NewMatic(configs.ExamplePrivateKey, configs.ExampleRpc)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	c, err := irys.New(irys.DefaultNode2, matic, false)
 	if err != nil {
 		log.Fatal(err)
