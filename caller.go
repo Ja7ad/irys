@@ -248,7 +248,7 @@ func (c *Client) Upload(ctx context.Context, file []byte, tags ...types.Tag) (ty
 }
 
 func (c *Client) upload(ctx context.Context, url string, file []byte, tags ...types.Tag) (types.Transaction, error) {
-	b, err := signFile(file, c.currency.GetSinger(), false, tags...)
+	b, err := signFile(file, c.currency.GetSinger(), true, tags...)
 	if err != nil {
 		return types.Transaction{}, err
 	}
