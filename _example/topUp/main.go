@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
 
 	"github.com/Ja7ad/irys"
 	"github.com/Ja7ad/irys/currency"
@@ -22,10 +23,15 @@ func main() {
 
 	ctx := context.Background()
 
-	b, err := c.GetBalance(ctx)
+	err = c.TopUpBalance(ctx, big.NewInt(321000000000023))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(b.String())
+	balance, err := c.GetBalance(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(balance)
 }

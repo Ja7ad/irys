@@ -2,11 +2,10 @@ package signer
 
 import (
 	"encoding/base64"
+	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-
-	"testing"
 )
 
 const EMPTY_ARWEAVE_WALLET = `{

@@ -2,6 +2,7 @@ package signer
 
 import (
 	"crypto/ecdsa"
+
 	"github.com/Ja7ad/irys/errors"
 
 	"github.com/ethereum/go-ethereum/accounts"
@@ -101,7 +102,6 @@ func (self *EthereumSigner) GetOwner() ([]byte, error) {
 	}
 
 	return ethereum_crypto.FromECDSAPub(publicKeyECDSA), nil
-
 }
 
 func (self *EthereumSigner) GetType() SignatureType {

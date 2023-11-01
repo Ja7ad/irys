@@ -1,19 +1,20 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
-	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/currency"
+	"io"
 	"log"
 	"os"
 	"time"
+
+	"github.com/Ja7ad/irys"
+	"github.com/Ja7ad/irys/currency"
 )
 
 func main() {
-	matic, err := currency.NewMatic(
-		"foobar",
-		"https://exampleRPC.com")
+	matic, err := currency.NewMatic("ExamplePrivateKey", "ExampleRpc")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -23,7 +24,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	file, err := os.Open("/home/javad/Downloads/mtn.json")
+	file, err := os.Open("absolute_path_to_file")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,11 +32,21 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	tx, err := c.BasicUpload(ctx, file)
+	stat, err := file.Stat()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	bs := make([]byte, stat.Size())
+	_, err = bufio.NewReader(file).Read(bs)
+	if err != nil && err != io.EOF {
+		log.Fatal(err)
+	}
+
+	tx, err := c.BasicUpload(ctx, bs)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Println(tx)
-
 }

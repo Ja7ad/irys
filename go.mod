@@ -3,7 +3,6 @@ module github.com/Ja7ad/irys
 go 1.18
 
 require (
-	github.com/avast/retry-go v2.7.0+incompatible
 	github.com/ethereum/go-ethereum v1.13.4
 	github.com/hamba/avro/v2 v2.16.0
 	github.com/hashicorp/go-retryablehttp v0.7.4
