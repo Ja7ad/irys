@@ -6,12 +6,11 @@ import (
 	"log"
 
 	"github.com/Ja7ad/irys"
-	"github.com/Ja7ad/irys/configs"
 	"github.com/Ja7ad/irys/currency"
 )
 
 func main() {
-	matic, err := currency.NewMatic(configs.ExamplePrivateKey, configs.ExampleRpc)
+	matic, err := currency.NewMatic("ExamplePrivateKey", "ExampleRpc")
 	if err != nil {
 		log.Fatal(err)
 	}
