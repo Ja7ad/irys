@@ -3,9 +3,12 @@ package irys
 import (
 	"context"
 	"fmt"
+	"golang.org/x/net/proxy"
 	"io"
 	"math/big"
+	"net"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -16,6 +19,11 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
+const (
+	_http   = "http"
+	_socks5 = "socks5"
+)
+
 type Client struct {
 	mu       *sync.Mutex
 	client   *retryablehttp.Client
@@ -24,6 +32,11 @@ type Client struct {
 	contract string
 	logging  logger.Logger
 	debug    bool
+	proxy    struct {
+		proxyType string
+		uri       string
+		auth      proxy.Auth
+	}
 }
 
 type Irys interface {
@@ -105,11 +118,30 @@ func New(node Node, currency currency.Currency, debug bool, options ...Option) (
 	}
 
 	if irys.client.HTTPClient.Transport == nil {
-		irys.client.HTTPClient.Transport = http.DefaultTransport.(*http.Transport).Clone()
+		transport := http.DefaultTransport.(*http.Transport).Clone()
+		switch irys.proxy.proxyType {
+		case _http:
+			uri, err := url.Parse(irys.proxy.uri)
+			if err != nil {
+				return nil, err
+			}
+			transport.Proxy = http.ProxyURL(uri)
+		case _socks5:
+			dialer, err := proxy.SOCKS5("tcp", irys.proxy.uri, &irys.proxy.auth, proxy.Direct)
+			if err != nil {
+				return nil, err
+			}
+			dc := dialer.(interface {
+				DialContext(ctx context.Context, network, addr string) (net.Conn, error)
+			})
+			transport.DialContext = dc.DialContext
+		}
+
+		irys.client.HTTPClient.Transport = transport
 	}
 
 	irys.mu.Lock()
-	contract, err := irys.getTokenContractAddress(node, currency)
+	contract, err := irys.getNodeContract(node, currency)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +161,7 @@ func (c *Client) Close() {
 	}
 }
 
-func (c *Client) getTokenContractAddress(node Node, currency currency.Currency) (string, error) {
+func (c *Client) getNodeContract(node Node, currency currency.Currency) (string, error) {
 	r, err := c.client.Get(string(node))
 	if err != nil {
 		return "", err
